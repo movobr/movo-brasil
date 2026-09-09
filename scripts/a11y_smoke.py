@@ -45,7 +45,8 @@ def main() -> int:
             check(route, '"status":"healthy"' in html, "health não saudável")
             continue
         check(route, re.search(r'<html[^>]*lang="', html) is not None, "sem lang")
-        check(route, len(re.findall(r"<h1", html)) == 1, "h1 ausente ou múltiplo")
+        rendered = html.count("<h1")
+        check(route, rendered == 1, f"h1 renderizado ausente ou multiplo ({rendered})")
         for tag in re.findall(r"<button[^>]*>(.*?)</button>", html, re.DOTALL):
             text = re.sub(r"<[^>]+>", "", tag).strip()
             check(route, text != "", "button sem nome acessível")
