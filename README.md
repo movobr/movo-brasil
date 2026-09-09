@@ -67,3 +67,10 @@ Máquina de estado fechada (11 estados, triggers atribuídos, pagamento só
 por evento verificado), vencedor único, taxas R$ 6,00/R$ 10,00, janela
 grátis de 2 min, refund `refund_pending` para pré-pagas canceladas.
 Rastreabilidade: `docs/TRACEABILITY-FASE-5.md`.
+
+## Fase 6 — Pagamentos + split (REQ-PAY-001, REQ-FIN-001)
+
+Pix pré-pago (10 min), idempotência fim-a-fim, webhook Mercado Pago com
+assinatura oficial, split 80/17/3 exato, settlement ledger-driven,
+SaaS separado de corridas. Tabela SQL de ledger adiada (fora do 11).
+Rastreabilidade: `docs/TRACEABILITY-FASE-6.md`.

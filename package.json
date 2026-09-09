@@ -12,7 +12,8 @@
     "build": "tsc -p tsconfig.build.json"
   },
   "dependencies": {
-    "@supabase/supabase-js": "2.116.0"
+    "@supabase/supabase-js": "2.116.0",
+    "mercadopago": "2.13.0"
   },
   "devDependencies": {
     "@types/node": "22.10.2",
