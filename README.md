@@ -60,3 +60,10 @@ lexicográfico (ETA, frescura, ociosidade, UUID), ondas 2/4/7 km com até 5
 ofertas e 12 s, vencedor único (aceites tardios = CONFLICT), outcome
 `no_driver_available` + evento após a onda 3.
 Rastreabilidade: `docs/TRACEABILITY-FASE-4.md`.
+
+## Fase 5 — Corrida + cancelamento (REQ-RIDE-001, REQ-CXL-001)
+
+Máquina de estado fechada (11 estados, triggers atribuídos, pagamento só
+por evento verificado), vencedor único, taxas R$ 6,00/R$ 10,00, janela
+grátis de 2 min, refund `refund_pending` para pré-pagas canceladas.
+Rastreabilidade: `docs/TRACEABILITY-FASE-5.md`.
