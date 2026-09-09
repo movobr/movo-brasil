@@ -142,3 +142,9 @@ Rastreabilidade: `docs/TRACEABILITY-FASE-15.md`.
 Docker multi-stage, migrator com dry run real, stacks Swarm + Traefik,
 CI com os 8 gates (aprovação manual em `production`), health check.
 Rastreabilidade: `docs/TRACEABILITY-FASE-16.md`.
+
+## Fase 17 — Painel operacional (24)
+
+Fila, corridas ativas, alertas e dispatch manual auditado, com carimbo
+de atualização e sem falsa atualidade.
+Rastreabilidade: `docs/TRACEABILITY-FASE-17.md`.
