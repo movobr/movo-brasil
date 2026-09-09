@@ -110,3 +110,9 @@ Rastreabilidade: `docs/TRACEABILITY-FASE-10.md`.
 Casca + auth OTP, home temática, cotação com o motor real (estimativa),
 permissões com finalidade/fallback, sessão segura, versionamento e canais.
 Rastreabilidade: `docs/TRACEABILITY-FASE-11.md`.
+
+## Fase 12 — Endurecimento G3/G5 (33/36/61/62/17)
+
+Logs/métricas/health, rate limiting, headers + CORS, outbox idempotente,
+runbook de backup/DR, smoke de carga local sem afirmação de produção.
+Rastreabilidade: `docs/TRACEABILITY-FASE-12.md`.
