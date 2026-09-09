@@ -1,0 +1,25 @@
+{
+  "name": "@movo/brasil",
+  "version": "0.1.0",
+  "private": true,
+  "description": "MOVO Brasil — SaaS de mobilidade multi-tenant e white-label (Fase 1: fundação multi-tenant).",
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "lint": "node scripts/lint.js",
+    "test": "vitest run",
+    "test:integration": "vitest run tests/integration",
+    "build": "tsc -p tsconfig.build.json"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "2.116.0"
+  },
+  "devDependencies": {
+    "@types/node": "22.10.2",
+    "typescript": "5.7.3",
+    "vitest": "2.1.8"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
