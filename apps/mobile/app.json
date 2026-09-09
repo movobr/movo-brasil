@@ -1,0 +1,23 @@
+{
+  "expo": {
+    "name": "MOVO Brasil",
+    "slug": "movo-brasil",
+    "version": "0.1.0",
+    "scheme": "movo",
+    "platforms": ["ios", "android"],
+    "ios": {
+      "bundleIdentifier": "br.com.movo.app",
+      "buildNumber": "1",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Sua localização é usada para encontrar motoristas próximos e calcular a tarifa da corrida.",
+        "NSUserNotificationsUsageDescription": "Notificações avisam sobre ofertas, chegada do motorista e status do pagamento."
+      }
+    },
+    "android": {
+      "package": "br.com.movo.app",
+      "versionCode": 1,
+      "permissions": ["ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION", "POST_NOTIFICATIONS"],
+      "blockedPermissions": ["ACCESS_BACKGROUND_LOCATION"]
+    }
+  }
+}

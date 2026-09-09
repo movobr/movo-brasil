@@ -16,8 +16,10 @@
     "web:typecheck": "npm --workspace @movo/web run typecheck",
     "web:test": "npm --workspace @movo/web run test",
     "web:build": "npm --workspace @movo/web run build",
-    "typecheck": "npm run backend:typecheck && npm run web:typecheck",
-    "test": "npm run backend:test && npm run web:test",
+    "mobile:typecheck": "npm --workspace @movo/mobile run typecheck",
+    "mobile:test": "npm --workspace @movo/mobile run test",
+    "typecheck": "npm run backend:typecheck && npm run web:typecheck && npm run mobile:typecheck",
+    "test": "npm run backend:test && npm run web:test && npm run mobile:test",
     "build": "npm run backend:build && npm run web:build"
   },
   "engines": {

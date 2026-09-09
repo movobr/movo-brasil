@@ -104,3 +104,9 @@ admin de tenants (lista + detalhe com assinatura e auditoria), estados
 de UI, offline, responsivo e base acessível — tudo em dados dos
 serviços reais (demo A/B sem credenciais, Supabase com).
 Rastreabilidade: `docs/TRACEABILITY-FASE-10.md`.
+
+## Fase 11 — Mobile Expo (DEC-TECH-003, 20/21/64/65)
+
+Casca + auth OTP, home temática, cotação com o motor real (estimativa),
+permissões com finalidade/fallback, sessão segura, versionamento e canais.
+Rastreabilidade: `docs/TRACEABILITY-FASE-11.md`.
