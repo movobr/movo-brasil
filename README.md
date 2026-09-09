@@ -116,3 +116,10 @@ Rastreabilidade: `docs/TRACEABILITY-FASE-11.md`.
 Logs/métricas/health, rate limiting, headers + CORS, outbox idempotente,
 runbook de backup/DR, smoke de carga local sem afirmação de produção.
 Rastreabilidade: `docs/TRACEABILITY-FASE-12.md`.
+
+## Fase 13 — Jornada do passageiro na web (26)
+
+Cotação, confirmação, matching, corrida, cancelamento com taxa e
+histórico — Server Actions sobre os serviços reais, motorista demo
+verificado, Pix travando matching sem pago.
+Rastreabilidade: `docs/TRACEABILITY-FASE-13.md`.

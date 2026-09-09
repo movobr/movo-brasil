@@ -168,6 +168,15 @@ export class RideOrchestrator {
     return ride;
   }
 
+  async getRide(actor: ActorContext, rideId: string): Promise<Ride> {
+    return this.requireRide(actor, rideId, RIDE_PERMISSIONS.rideRead);
+  }
+
+  async listTenantRides(actor: ActorContext, tenantId: string): Promise<Ride[]> {
+    authorize(actor, RIDE_PERMISSIONS.rideRead, tenantId);
+    return this.rides.listByTenant(tenantId);
+  }
+
   private async requireRide(actor: ActorContext, rideId: string, permission: string): Promise<Ride> {
     const ride = await this.rides.findById(rideId);
     if (ride === null) throw new DomainError('NOT_FOUND', `Ride not found: ${rideId}.`);
