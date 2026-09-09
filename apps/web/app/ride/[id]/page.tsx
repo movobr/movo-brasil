@@ -1,8 +1,9 @@
 import { notFound } from 'next/navigation';
+import { randomUUID } from 'node:crypto';
 import { DataStates } from '../../../components/DataStates.js';
 import { getBackend } from '../../../lib/backend.js';
 import { requireSession } from '../../../lib/require-session.js';
-import { advanceAction, cancelRideAction, startMatchingAction } from '../actions.js';
+import { advanceAction, cancelRideAction, openChatAction, reportChatMessageAction, sendChatMessageAction, startMatchingAction } from '../actions.js';
 
 /** 26-5..9: matching, assigned, arriving, in-progress, completed + cancel. */
 export default async function RideStatusPage({
@@ -10,7 +11,7 @@ export default async function RideStatusPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ tenant?: string; fee?: string; opError?: string }>;
+  searchParams: Promise<{ tenant?: string; fee?: string; opError?: string; chat?: string }>;
 }) {
   const actor = await requireSession().catch(() => null);
   if (actor === null) {
@@ -109,9 +110,62 @@ export default async function RideStatusPage({
         <p role="status">Corrida concluída. Recibo e avaliação chegam na fase de pós-corrida.</p>
       ) : null}
       {ride.status === 'CANCELLED' ? <p role="status">Corrida cancelada.</p> : null}
+      {ride.driverId !== null && backend.chat !== null ? (
+        <section className="card" aria-label="Chat da corrida" aria-live="polite">
+          <h2>Chat da corrida</h2>
+          {query.chat === undefined ? (
+            <form action={openChatAction.bind(null, ride.id, slug)}>
+              <button type="submit">Abrir chat com {actor.userId === ride.passengerId ? 'o motorista' : 'o passageiro'}</button>
+            </form>
+          ) : (
+            <ChatThread rideId={ride.id} slug={slug} tenantId={tenant.id} actor={actor} />
+          )}
+        </section>
+      ) : null}
       <p>
         <a href={`/rides/history?tenant=${slug}`}>Histórico</a>
       </p>
     </DataStates>
+  );
+}
+
+async function ChatThread({ rideId, slug, tenantId, actor }: { rideId: string; slug: string; tenantId: string; actor: { userId: string } }) {
+  const backend = await getBackend();
+  if (backend.chat === null) return <p role="status">Chat indisponível.</p>;
+  const full = await requireSession();
+  const peeked = await backend.chat.peek(full, tenantId, rideId, 100).catch(() => null);
+  if (peeked === null) return <p role="status">Chat ainda não aberto.</p>;
+  const send = sendChatMessageAction.bind(null, rideId, slug);
+  return (
+    <div>
+      {peeked.messages.length === 0 ? (
+        <p role="status">Nenhuma mensagem ainda. Sem realtime nesta fase: recarregue para ver respostas.</p>
+      ) : (
+        <ul>
+          {peeked.messages.map((message) => (
+            <li key={message.id}>
+              <strong>{message.senderUserId === actor.userId ? 'Você' : 'Outro participante'}</strong>{' '}
+              <time dateTime={message.sentAt.toISOString()}>{message.sentAt.toLocaleTimeString('pt-BR')}</time>
+              <p>{message.body}</p>
+              {message.reported ? (
+                <span className="badge">denunciada</span>
+              ) : (
+                <form action={reportChatMessageAction.bind(null, rideId, slug, message.id)}>
+                  <button type="submit">Denunciar</button>
+                </form>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+      <form action={send}>
+        <input type="hidden" name="clientMessageId" value={randomUUID()} />
+        <label>
+          Mensagem
+          <input type="text" name="body" required maxLength={1000} autoComplete="off" />
+        </label>
+        <button className="primary" type="submit">Enviar</button>
+      </form>
+    </div>
   );
 }

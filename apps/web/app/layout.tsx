@@ -34,6 +34,9 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
                   <a href="/ops">Operação</a>
                 </li>
                 <li>
+                  <a href="/notifications">Notificações</a>
+                </li>
+                <li>
                   <a href="/admin/tenants">Tenants</a>
                 </li>
               </ul>

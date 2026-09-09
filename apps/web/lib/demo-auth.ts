@@ -10,14 +10,14 @@ import type { ActorContext } from '@movo/brasil/src/domain/authorization.js';
  * explícita usada só pelo DemoAuthProvider.
  */
 export const DEMO_ROLE_PERMISSIONS: Readonly<Record<string, ReadonlyArray<string>>> = {
-  MOVO_PLATFORM_ADMIN: ['tenant.read', 'tenant.update', 'subscription.read', 'subscription.manage', 'audit.read', 'ride.read', 'ride.dispatch', 'ride.accept', 'ride.cancel', 'driver.read', 'driver.manage'],
-  TENANT_ADMIN: ['tenant.read', 'tenant.update', 'branding.manage', 'driver.read', 'driver.manage', 'ride.read', 'ride.dispatch', 'audit.read', 'subscription.read'],
-  OPERATOR: ['ride.read', 'ride.dispatch', 'ride.cancel', 'driver.read'],
-  SUPPORT_AGENT: ['ride.read', 'audit.read'],
+  MOVO_PLATFORM_ADMIN: ['tenant.read', 'tenant.update', 'subscription.read', 'subscription.manage', 'audit.read', 'ride.read', 'ride.dispatch', 'ride.accept', 'ride.cancel', 'ride.chat', 'driver.read', 'driver.manage'],
+  TENANT_ADMIN: ['tenant.read', 'tenant.update', 'branding.manage', 'driver.read', 'driver.manage', 'ride.read', 'ride.dispatch', 'ride.chat', 'audit.read', 'subscription.read'],
+  OPERATOR: ['ride.read', 'ride.dispatch', 'ride.cancel', 'ride.chat', 'driver.read'],
+  SUPPORT_AGENT: ['ride.read', 'ride.chat', 'audit.read'],
   // driver.manage no demo cobre o autosserviço (disponibilidade própria);
   // o mapeamento real definirá o escopo (UNSPECIFIED-007).
-  DRIVER: ['ride.read', 'ride.accept', 'driver.read', 'driver.manage'],
-  PASSENGER: ['ride.request', 'ride.read', 'ride.cancel'],
+  DRIVER: ['ride.read', 'ride.accept', 'ride.chat', 'driver.read', 'driver.manage'],
+  PASSENGER: ['ride.request', 'ride.read', 'ride.cancel', 'ride.chat'],
 };
 
 export const DEMO_AUTH_CODE = '123456';

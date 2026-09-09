@@ -148,3 +148,10 @@ Rastreabilidade: `docs/TRACEABILITY-FASE-16.md`.
 Fila, corridas ativas, alertas e dispatch manual auditado, com carimbo
 de atualização e sem falsa atualidade.
 Rastreabilidade: `docs/TRACEABILITY-FASE-17.md`.
+
+## Fase 18 — Chat + notificações (19/18)
+
+Chat da corrida (participantes + suporte, dedupe, denúncia), catálogo
+de notificações por evento com retry/fallback, inbox in-app, eventos
+do orquestrador gerando notificações reais no demo.
+Rastreabilidade: `docs/TRACEABILITY-FASE-18.md`.

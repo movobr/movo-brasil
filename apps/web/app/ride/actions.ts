@@ -99,3 +99,56 @@ export async function cancelRideAction(rideId: string, slug: string): Promise<ne
     failure(rideId, slug, error);
   }
 }
+
+/** 19: abre a conversa da corrida (mutação via POST, nunca no GET). */
+export async function openChatAction(rideId: string, slug: string): Promise<never> {
+  const actor = await requireSession();
+  const { backend, tenant } = await tenantBySlug(slug);
+  if (backend.chat === null) backTo(rideId, slug, '&opError=Chat+indispon%C3%ADvel.');
+  try {
+    await backend.chat.openForRide(actor, tenant.id, rideId);
+  } catch (error) {
+    failure(rideId, slug, error);
+  }
+  backTo(rideId, slug, '&chat=1');
+}
+
+/** 19: envia mensagem; idempotente por clientMessageId (form gera UUID). */
+export async function sendChatMessageAction(rideId: string, slug: string, formData: FormData): Promise<never> {
+  const actor = await requireSession();
+  const { backend, tenant } = await tenantBySlug(slug);
+  if (backend.chat === null) backTo(rideId, slug, '&opError=Chat+indispon%C3%ADvel.');
+  try {
+    const peeked = await backend.chat.peek(actor, tenant.id, rideId, 100);
+    if (peeked === null) throw new Error('Abra o chat primeiro.');
+    await backend.chat.sendMessage(
+      actor,
+      peeked.conversation.id,
+      tenant.id,
+      rideId,
+      String(formData.get('body') ?? ''),
+      String(formData.get('clientMessageId') ?? ''),
+      false,
+    );
+  } catch (error) {
+    failure(rideId, slug, error);
+  }
+  backTo(rideId, slug, '&chat=1');
+}
+
+/** 19: denúncia de abuso (registrada; sem auto-moderação). */
+export async function reportChatMessageAction(rideId: string, slug: string, messageId: string): Promise<never> {
+  const actor = await requireSession();
+  const { backend, tenant } = await tenantBySlug(slug);
+  if (backend.chat === null) backTo(rideId, slug, '&opError=Chat+indispon%C3%ADvel.');
+  try {
+    const peeked = await backend.chat.peek(actor, tenant.id, rideId, 100);
+    if (peeked === null) throw new Error('Conversa não encontrada.');
+    const message = peeked.messages.find((m) => m.id === messageId);
+    if (message === undefined) throw new Error('Mensagem não encontrada.');
+    await backend.chat.reportMessage(actor, tenant.id, peeked.conversation, message);
+  } catch (error) {
+    failure(rideId, slug, error);
+  }
+  backTo(rideId, slug, '&chat=1');
+}

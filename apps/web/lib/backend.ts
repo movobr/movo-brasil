@@ -23,6 +23,11 @@ import { SupabaseRideRepository } from '@movo/brasil/src/infrastructure/supabase
 import { SupabasePaymentStore } from '@movo/brasil/src/infrastructure/supabase/payment-store.js';
 import { SupabaseDriverProfileRepository, SupabasePassengerProfileRepository, SupabaseVehicleRepository } from '@movo/brasil/src/infrastructure/supabase/onboarding.js';
 import { SupabaseUserRepository } from '@movo/brasil/src/infrastructure/supabase/repositories.js';
+import { ConversationService } from '@movo/brasil/src/application/conversation-service.js';
+import { FakeChannelSender, NotificationService } from '@movo/brasil/src/application/notification-service.js';
+import type { NotificationStore } from '@movo/brasil/src/application/notification-service.js';
+import { renderTemplate } from '@movo/brasil/src/domain/notification.js';
+import { InMemoryConversationStore, InMemoryDeviceTokenStore, InMemoryMessageStore, InMemoryNotificationStore } from '@movo/brasil/src/infrastructure/memory/communication.js';
 import { FakeMapsProvider, DemoPaymentProvider } from './demo-fakes.js';
 
 /**
@@ -50,8 +55,13 @@ export const DEMO_BRANDING: Readonly<Record<string, BrandingConfig>> = {
 
 class CollectingPublisher implements EventPublisher {
   public readonly events: DomainEvent[] = [];
+  private forwarder: ((event: DomainEvent) => Promise<void>) | null = null;
+  onPublish(forward: (event: DomainEvent) => Promise<void>): void {
+    this.forwarder = forward;
+  }
   async publish(event: DomainEvent): Promise<void> {
     this.events.push(event);
+    if (this.forwarder !== null) await this.forwarder(event);
   }
 }
 
@@ -66,6 +76,10 @@ interface DemoStores {
   passengers: InMemoryPassengerProfileRepository;
   vehicles: InMemoryVehicleRepository;
   events: CollectingPublisher;
+  conversations: InMemoryConversationStore;
+  messages: InMemoryMessageStore;
+  notifications: InMemoryNotificationStore;
+  deviceTokens: InMemoryDeviceTokenStore;
 }
 
 const globals = globalThis as unknown as { __movoDemoStores?: DemoStores };
@@ -119,13 +133,16 @@ export interface Backend {
   subscriptions: SubscriptionService;
   onboarding: OnboardingService;
   orchestrator: RideOrchestrator;
+  chat: ConversationService | null;
+  notifications: NotificationService | null;
+  inbox: NotificationStore | null;
   audits: InMemoryAuditEventRepository | null;
   users: InMemoryUserRepository | SupabaseUserRepository | null;
   platformActor: ActorContext;
   demoBrandingForSlug(slug: string): BrandingConfig | null;
 }
 
-const PLATFORM_PERMISSIONS = ['tenant.read', 'tenant.update', 'subscription.read', 'subscription.manage', 'audit.read', 'ride.read', 'ride.dispatch', 'ride.accept', 'ride.cancel', 'driver.read', 'driver.manage'];
+const PLATFORM_PERMISSIONS = ['tenant.read', 'tenant.update', 'subscription.read', 'subscription.manage', 'audit.read', 'ride.read', 'ride.dispatch', 'ride.accept', 'ride.cancel', 'ride.chat', 'driver.read', 'driver.manage'];
 
 export async function getBackend(): Promise<Backend> {
   const platformActor: ActorContext = {
@@ -142,6 +159,9 @@ export async function getBackend(): Promise<Backend> {
       subscriptions: new SubscriptionService(new InMemorySubscriptionRepository(), new InMemoryLedgerStore(), audits),
       onboarding: new OnboardingService(new SupabaseDriverProfileRepository(db), new SupabasePassengerProfileRepository(db), new SupabaseVehicleRepository(db), audits),
       orchestrator: new RideOrchestrator(new SupabaseTenantRepository(db), new SupabaseRideRepository(db), audits, new CollectingPublisher(), maps, payments),
+      chat: null,
+      notifications: null,
+      inbox: null,
       audits,
       users: new SupabaseUserRepository(db),
       platformActor,
@@ -159,15 +179,49 @@ export async function getBackend(): Promise<Backend> {
     passengers: new InMemoryPassengerProfileRepository(),
     vehicles: new InMemoryVehicleRepository(),
     events: new CollectingPublisher(),
+    conversations: new InMemoryConversationStore(),
+    messages: new InMemoryMessageStore(),
+    notifications: new InMemoryNotificationStore(),
+    deviceTokens: new InMemoryDeviceTokenStore(),
   };
   const stores = globals.__movoDemoStores;
   await seedDemo(stores);
   const payments = new PaymentService(new DemoPaymentProvider(), stores.payments, stores.ledger, undefined, randomUUID);
+  const rideParticipants = {
+    findParticipants: async (tenantId: string, rideId: string) => {
+      const ride = await stores.rides.findById(rideId);
+      if (ride === null || ride.tenantId !== tenantId) return null;
+      return { passengerUserId: ride.passengerId, driverUserId: ride.driverId };
+    },
+    findById: async (tenantId: string, rideId: string) => {
+      const ride = await stores.rides.findById(rideId);
+      if (ride === null || ride.tenantId !== tenantId) return null;
+      return { passengerUserId: ride.passengerId, driverUserId: ride.driverId };
+    },
+  };
+  const chat = new ConversationService(stores.conversations, stores.messages, rideParticipants, randomUUID, () => new Date());
+  const notificationService = new NotificationService(
+    stores.notifications,
+    stores.deviceTokens,
+    rideParticipants,
+    { forTenant: async () => ({}) },
+    new Map([
+      ['push', new FakeChannelSender('push')],
+      ['in_app', new FakeChannelSender('in_app')],
+    ]),
+    randomUUID,
+    () => new Date(),
+    renderTemplate,
+  );
+  stores.events.onPublish((event) => notificationService.handleRideEvent(event));
   return {
     tenants: new TenantService(stores.tenants, stores.audits),
     subscriptions: new SubscriptionService(new InMemorySubscriptionRepository(), stores.ledger, stores.audits),
     onboarding: new OnboardingService(stores.drivers, stores.passengers, stores.vehicles, stores.audits),
     orchestrator: new RideOrchestrator(stores.tenants, stores.rides, stores.audits, stores.events, maps, payments, undefined, undefined, stores.drivers),
+    chat,
+    notifications: notificationService,
+    inbox: stores.notifications,
     audits: stores.audits,
     users: stores.users,
     platformActor,
