@@ -1,0 +1,48 @@
+# Swarm stack — staging (37/DEC-OPS). Traefik/Portainer já existem no VPS;
+# aqui só os serviços MOVO com labels. Segredos via env file no VPS.
+version: "3.8"
+
+services:
+  migrator:
+    image: "${REGISTRY}/movo-migrator:${TAG:-latest}"
+    environment:
+      DATABASE_URL: "${DATABASE_URL}"
+    deploy:
+      restart_policy:
+        condition: none
+    networks:
+      - movo-net
+
+  web:
+    image: "${REGISTRY}/movo-web:${TAG:-latest}"
+    depends_on:
+      - migrator
+    environment:
+      SESSION_SECRET: "${SESSION_SECRET}"
+      SUPABASE_URL: "${SUPABASE_URL}"
+      SUPABASE_SERVICE_ROLE_KEY: "${SUPABASE_SERVICE_ROLE_KEY}"
+      ALLOW_DEMO_AUTH: "false"
+    deploy:
+      replicas: 2
+      update_config:
+        parallelism: 1
+        order: start-first
+      restart_policy:
+        condition: on-failure
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.movo-staging.rule=Host(`${STAGING_DOMAIN}`)"
+        - "traefik.http.routers.movo-staging.entrypoints=websecure"
+        - "traefik.http.routers.movo-staging.tls.certresolver=${TRAEFIK_CERT_RESOLVER:-letsencrypt}"
+        - "traefik.http.services.movo-staging.loadbalancer.server.port=3000"
+    networks:
+      - movo-net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+networks:
+  movo-net:
+    driver: overlay

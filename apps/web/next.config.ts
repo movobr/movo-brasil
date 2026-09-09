@@ -1,6 +1,7 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
+  output: 'standalone',
   transpilePackages: ['@movo/brasil'],
   async headers() {
     // 33: secure headers em todas as respostas.

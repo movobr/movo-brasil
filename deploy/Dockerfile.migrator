@@ -1,0 +1,8 @@
+# Aplica migrations em ordem numérica. Roda como job único antes do deploy
+# do web (gate 3 do contrato 37). Sem DATABASE_URL, falha explicando.
+FROM postgres:16-alpine
+WORKDIR /migrations
+COPY packages/backend/db/migrations/ ./
+COPY deploy/migrate.sh /usr/local/bin/migrate.sh
+RUN chmod +x /usr/local/bin/migrate.sh
+CMD ["migrate.sh"]

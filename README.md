@@ -136,3 +136,9 @@ Login, sessão selada HMAC, MFA pela política real, atores demo
 aposentados (multi-ator de verdade: passageiro, operador, motorista,
 admin). `SESSION_SECRET` + `ALLOW_DEMO_AUTH=true` no dev.
 Rastreabilidade: `docs/TRACEABILITY-FASE-15.md`.
+
+## Fase 16 — Deploy staging/produção (37, DEC-OPS)
+
+Docker multi-stage, migrator com dry run real, stacks Swarm + Traefik,
+CI com os 8 gates (aprovação manual em `production`), health check.
+Rastreabilidade: `docs/TRACEABILITY-FASE-16.md`.

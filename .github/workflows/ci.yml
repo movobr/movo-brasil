@@ -1,0 +1,122 @@
+# CI/CD — 37/DEC-OPS-004. Gates: lint/typecheck, testes, migration dry run,
+# image scan, staging, smoke, aprovação manual (environment `production`
+# com reviewers no GitHub), deploy com rollback pronto.
+name: movo-ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+env:
+  REGISTRY: ${{ vars.REGISTRY }}
+
+jobs:
+  gates-1-2:
+    name: "Gates 1-2: lint, typecheck, testes"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run backend:lint
+      - run: npm test
+
+  gate-3-migrations:
+    name: "Gate 3: migration dry run (Postgres real)"
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+        ports:
+          - 5432:5432
+    steps:
+      - uses: actions/checkout@v4
+      - name: Aplica 0001 em banco limpo
+        env:
+          PGPASSWORD: postgres
+        run: psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f packages/backend/db/migrations/0001_foundation.sql
+      - name: Aplica 0002 em sequência
+        env:
+          PGPASSWORD: postgres
+        run: psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f packages/backend/db/migrations/0002_rides_payments.sql
+      - name: Aplica 0003 em sequência
+        env:
+          PGPASSWORD: postgres
+        run: psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f packages/backend/db/migrations/0003_onboarding.sql
+      - name: Confere tabelas e RLS
+        env:
+          PGPASSWORD: postgres
+        run: psql -h localhost -U postgres -c "select tablename from pg_tables where schemaname='public' order by 1;" -c "select relname from pg_class where relkind='r' and relrowsecurity;" | tee evidence.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: migration-evidence
+          path: evidence.txt
+
+  gate-4-scan:
+    name: "Gate 4: image scan"
+    runs-on: ubuntu-latest
+    needs: [gates-1-2, gate-3-migrations]
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -f deploy/Dockerfile.web -t movo-web:${{ github.sha }} .
+      - uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: movo-web:${{ github.sha }}
+          severity: CRITICAL,HIGH
+          exit-code: "1"
+
+  gate-5-staging:
+    name: "Gate 5-6: staging + smoke"
+    runs-on: ubuntu-latest
+    needs: [gate-4-scan]
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -f deploy/Dockerfile.web -t ${{ vars.REGISTRY }}/movo-web:${{ github.sha }} .
+      - run: docker push ${{ vars.REGISTRY }}/movo-web:${{ github.sha }}
+      - name: Deploy staging via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          TAG: ${{ github.sha }}
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          envs: TAG
+          script: |
+            cd /opt/movo && TAG=$TAG docker stack deploy -c deploy/stack.staging.yml movo-staging
+      - name: Smoke no health check
+        run: sleep 20 && curl -fsS https://${{ vars.STAGING_DOMAIN }}/api/health | grep -q healthy
+
+  gate-7-8-production:
+    name: "Gates 7-8: produção com aprovação manual e rollback"
+    runs-on: ubuntu-latest
+    needs: [gate-5-staging]
+    if: github.ref == 'refs/heads/main'
+    environment:
+      name: production
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy produção (rollback automático em falha)
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          TAG: ${{ github.sha }}
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          envs: TAG
+          script: |
+            cd /opt/movo && TAG=$TAG docker stack deploy -c deploy/stack.production.yml movo && echo "${{ github.sha }}" > /opt/movo/.last-good-tag
+      - name: Smoke pós-deploy
+        run: sleep 20 && curl -fsS https://${{ vars.PROD_DOMAIN }}/api/health | grep -q healthy

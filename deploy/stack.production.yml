@@ -1,0 +1,52 @@
+# Swarm stack — produção (37/DEC-OPS-004: gate manual + rollback pronto).
+# Deploy somente via workflow com environment `production` aprovado.
+version: "3.8"
+
+services:
+  migrator:
+    image: "${REGISTRY}/movo-migrator:${TAG:-latest}"
+    environment:
+      DATABASE_URL: "${DATABASE_URL}"
+    deploy:
+      restart_policy:
+        condition: none
+    networks:
+      - movo-net
+
+  web:
+    image: "${REGISTRY}/movo-web:${TAG:-latest}"
+    depends_on:
+      - migrator
+    environment:
+      SESSION_SECRET: "${SESSION_SECRET}"
+      SUPABASE_URL: "${SUPABASE_URL}"
+      SUPABASE_SERVICE_ROLE_KEY: "${SUPABASE_SERVICE_ROLE_KEY}"
+      ALLOW_DEMO_AUTH: "false"
+    deploy:
+      replicas: 3
+      update_config:
+        parallelism: 1
+        order: start-first
+        failure_action: rollback
+      rollback_config:
+        parallelism: 1
+        order: stop-first
+      restart_policy:
+        condition: on-failure
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.movo-prod.rule=Host(`${PROD_DOMAIN}`)"
+        - "traefik.http.routers.movo-prod.entrypoints=websecure"
+        - "traefik.http.routers.movo-prod.tls.certresolver=${TRAEFIK_CERT_RESOLVER:-letsencrypt}"
+        - "traefik.http.services.movo-prod.loadbalancer.server.port=3000"
+    networks:
+      - movo-net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+networks:
+  movo-net:
+    driver: overlay
