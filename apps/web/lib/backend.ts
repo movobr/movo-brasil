@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { TenantService } from '@movo/brasil/src/application/tenant-service.js';
 import { SubscriptionService } from '@movo/brasil/src/application/subscription-service.js';
+import { OnboardingService } from '@movo/brasil/src/application/onboarding-service.js';
 import { RideOrchestrator } from '@movo/brasil/src/application/ride-orchestrator.js';
 import { PaymentService } from '@movo/brasil/src/application/payment-service.js';
 import { Tenant } from '@movo/brasil/src/domain/tenant.js';
@@ -11,6 +12,8 @@ import type { DomainEvent, EventPublisher } from '@movo/brasil/src/application/e
 import type { MapsProvider } from '@movo/brasil/src/application/maps-ports.js';
 import { InMemoryAuditEventRepository, InMemoryRideRepository, InMemoryTenantRepository, InMemoryUserRepository } from '@movo/brasil/src/infrastructure/memory/repositories.js';
 import { InMemoryDriverProfileRepository } from '@movo/brasil/src/infrastructure/memory/onboarding.js';
+import { InMemoryPassengerProfileRepository } from '@movo/brasil/src/infrastructure/memory/onboarding.js';
+import { InMemoryVehicleRepository } from '@movo/brasil/src/infrastructure/memory/onboarding.js';
 import { DriverProfile } from '@movo/brasil/src/domain/driver-profile.js';
 import { InMemoryLedgerStore, InMemoryPaymentStore } from '@movo/brasil/src/infrastructure/memory/payments.js';
 import { InMemorySubscriptionRepository } from '@movo/brasil/src/infrastructure/memory/subscriptions.js';
@@ -18,6 +21,7 @@ import { createSupabaseClient } from '@movo/brasil/src/infrastructure/supabase/c
 import { SupabaseTenantRepository } from '@movo/brasil/src/infrastructure/supabase/repositories.js';
 import { SupabaseRideRepository } from '@movo/brasil/src/infrastructure/supabase/ride-repository.js';
 import { SupabasePaymentStore } from '@movo/brasil/src/infrastructure/supabase/payment-store.js';
+import { SupabaseDriverProfileRepository, SupabasePassengerProfileRepository, SupabaseVehicleRepository } from '@movo/brasil/src/infrastructure/supabase/onboarding.js';
 import { FakeMapsProvider, DemoPaymentProvider } from './demo-fakes.js';
 
 /**
@@ -58,6 +62,8 @@ interface DemoStores {
   payments: InMemoryPaymentStore;
   ledger: InMemoryLedgerStore;
   drivers: InMemoryDriverProfileRepository;
+  passengers: InMemoryPassengerProfileRepository;
+  vehicles: InMemoryVehicleRepository;
   events: CollectingPublisher;
 }
 
@@ -96,6 +102,7 @@ async function seedDemo(stores: DemoStores): Promise<void> {
 export interface Backend {
   tenants: TenantService;
   subscriptions: SubscriptionService;
+  onboarding: OnboardingService;
   orchestrator: RideOrchestrator;
   audits: InMemoryAuditEventRepository | null;
   users: InMemoryUserRepository | null;
@@ -105,7 +112,7 @@ export interface Backend {
   demoBrandingForSlug(slug: string): BrandingConfig | null;
 }
 
-const PLATFORM_PERMISSIONS = ['tenant.read', 'tenant.update', 'subscription.read', 'subscription.manage', 'audit.read', 'ride.read', 'ride.dispatch', 'ride.accept', 'ride.cancel'];
+const PLATFORM_PERMISSIONS = ['tenant.read', 'tenant.update', 'subscription.read', 'subscription.manage', 'audit.read', 'ride.read', 'ride.dispatch', 'ride.accept', 'ride.cancel', 'driver.read', 'driver.manage'];
 
 export async function getBackend(): Promise<Backend> {
   const platformActor: ActorContext = {
@@ -120,6 +127,7 @@ export async function getBackend(): Promise<Backend> {
     return {
       tenants: new TenantService(new SupabaseTenantRepository(db), audits),
       subscriptions: new SubscriptionService(new InMemorySubscriptionRepository(), new InMemoryLedgerStore(), audits),
+      onboarding: new OnboardingService(new SupabaseDriverProfileRepository(db), new SupabasePassengerProfileRepository(db), new SupabaseVehicleRepository(db), audits),
       orchestrator: new RideOrchestrator(new SupabaseTenantRepository(db), new SupabaseRideRepository(db), audits, new CollectingPublisher(), maps, payments),
       audits,
       users: null,
@@ -137,6 +145,8 @@ export async function getBackend(): Promise<Backend> {
     payments: new InMemoryPaymentStore(),
     ledger: new InMemoryLedgerStore(),
     drivers: new InMemoryDriverProfileRepository(),
+    passengers: new InMemoryPassengerProfileRepository(),
+    vehicles: new InMemoryVehicleRepository(),
     events: new CollectingPublisher(),
   };
   const stores = globals.__movoDemoStores;
@@ -145,6 +155,7 @@ export async function getBackend(): Promise<Backend> {
   return {
     tenants: new TenantService(stores.tenants, stores.audits),
     subscriptions: new SubscriptionService(new InMemorySubscriptionRepository(), stores.ledger, stores.audits),
+    onboarding: new OnboardingService(stores.drivers, stores.passengers, stores.vehicles, stores.audits),
     orchestrator: new RideOrchestrator(stores.tenants, stores.rides, stores.audits, stores.events, maps, payments, undefined, undefined, stores.drivers),
     audits: stores.audits,
     users: stores.users,

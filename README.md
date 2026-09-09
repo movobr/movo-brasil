@@ -123,3 +123,9 @@ Cotação, confirmação, matching, corrida, cancelamento com taxa e
 histórico — Server Actions sobre os serviços reais, motorista demo
 verificado, Pix travando matching sem pago.
 Rastreabilidade: `docs/TRACEABILITY-FASE-13.md`.
+
+## Fase 14 — Jornada do motorista na web (26)
+
+Disponibilidade, ofertas do matching com aceite verificado e ganhos
+(80% do cotado) — tudo sobre os serviços reais.
+Rastreabilidade: `docs/TRACEABILITY-FASE-14.md`.

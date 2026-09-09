@@ -25,6 +25,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                   <a href="/rides/history">Histórico</a>
                 </li>
                 <li>
+                  <a href="/driver">Motorista</a>
+                </li>
+                <li>
                   <a href="/admin/tenants">Tenants</a>
                 </li>
               </ul>

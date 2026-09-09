@@ -81,6 +81,15 @@ export class OnboardingService {
     return profile;
   }
 
+  async getDriverProfileByUser(actor: ActorContext, userId: string): Promise<DriverProfile> {
+    const profile = await this.drivers.findByUserId(userId);
+    if (profile === null) {
+      throw new DomainError('NOT_FOUND', `Driver profile not found for user: ${userId}.`);
+    }
+    authorize(actor, DRIVER_PERMISSIONS.driverRead, profile.tenantId);
+    return profile;
+  }
+
   async registerVehicle(
     actor: ActorContext,
     input: { tenantId: string; driverUserId: string; typeId: string; serviceCategory: string; plate: string; status: string },
