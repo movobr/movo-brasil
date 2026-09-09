@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { View } from 'react-native';
 import { AuthScreen } from './src/screens/AuthScreen.js';
+import { DriverScreen } from './src/screens/DriverScreen.js';
 import { HomeScreen } from './src/screens/HomeScreen.js';
 import { QuoteScreen } from './src/screens/QuoteScreen.js';
 
-type Route = 'auth' | 'home' | 'quote';
+type Route = 'auth' | 'home' | 'quote' | 'driver';
 
 /** Composição mínima (navegador dedicado chega com mais telas). */
 export default function App() {
@@ -27,6 +28,9 @@ export default function App() {
         </View>
       ) : null}
       {route === 'quote' ? <QuoteScreen category="car" /> : null}
+      {route === 'driver' ? (
+        <DriverScreen branding={null} offers={[]} activeRide={null} screenState="empty" onNavigate={() => {}} />
+      ) : null}
     </View>
   );
 }

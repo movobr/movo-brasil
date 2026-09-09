@@ -167,3 +167,10 @@ Rastreabilidade: `docs/TRACEABILITY-FASE-19.md`.
 Freshness 20/60 s, prune do pool fiado no dispatch, geofence com 100 m
 de tolerância. Cadência, retenção e polígonos: infra/config futuras.
 Rastreabilidade: `docs/TRACEABILITY-FASE-20.md`.
+
+## Fase 21 — Driver no mobile (20/16)
+
+Painel do motorista (disponibilidade, ofertas com aceite em 2 toques,
+corrida ativa, ganhos pelo split real), tracker 5/15 s por porta e
+handoff de navegação. Sync servidor: API futura.
+Rastreabilidade: `docs/TRACEABILITY-FASE-21.md`.
