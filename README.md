@@ -43,3 +43,12 @@ Sessão e contexto de ator via Supabase Auth: e-mail/senha+MFA (admins web),
 OTP de telefone (passageiro/motorista). Tenant sempre do cadastro local.
 Testes vivos pulam sem `SUPABASE_URL`/`SUPABASE_SERVICE_ROLE_KEY`.
 Rastreabilidade: `docs/TRACEABILITY-FASE-2.md`.
+
+## Fase 3 — Pricing V1 (DEC-PRICE-001..009, REQ-PRICING-001)
+
+Cálculo puro server-authoritative em centavos inteiros (arredondamento único
+ao final): catálogo carro/moto, espera com 3 min grátis, pedágio integral,
+surge 1.00–1.80 sobre componentes antes de descontos/pedágios, cupom + 1
+promoção automática com teto no subtotal, cotação expira em 2 min ou com
+troca de origem/destino.
+Rastreabilidade: `docs/TRACEABILITY-FASE-3.md`.
