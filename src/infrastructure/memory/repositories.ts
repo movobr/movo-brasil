@@ -43,6 +43,20 @@ export class InMemoryUserRepository implements UserRepository {
     return this.byId.get(id) ?? null;
   }
 
+  async findByEmail(email: string): Promise<User | null> {
+    for (const user of this.byId.values()) {
+      if (user.email === email) return user;
+    }
+    return null;
+  }
+
+  async findByPhone(phone: string): Promise<User | null> {
+    for (const user of this.byId.values()) {
+      if (user.phone === phone) return user;
+    }
+    return null;
+  }
+
   async listByTenant(tenantId: string): Promise<User[]> {
     return [...this.byId.values()].filter((user) => user.tenantId === tenantId);
   }

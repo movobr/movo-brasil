@@ -36,3 +36,10 @@ automaticamente; todo o restante roda offline.
 - UNSPECIFIED-002: persistência SQL de configuração/branding (tabelas fora do 11 adiada).
 - UNSPECIFIED-003: vocabulário de status de usuário (11 não lista valores).
 - UNSPECIFIED-004: critérios de completude de branding (06 não define).
+
+## Fase 2 — Identity & Access (DEC-TECH-005)
+
+Sessão e contexto de ator via Supabase Auth: e-mail/senha+MFA (admins web),
+OTP de telefone (passageiro/motorista). Tenant sempre do cadastro local.
+Testes vivos pulam sem `SUPABASE_URL`/`SUPABASE_SERVICE_ROLE_KEY`.
+Rastreabilidade: `docs/TRACEABILITY-FASE-2.md`.

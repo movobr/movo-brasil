@@ -161,6 +161,20 @@ export class SupabaseUserRepository implements UserRepository {
     return toUser(data as UserRow);
   }
 
+  async findByEmail(email: string): Promise<User | null> {
+    const { data, error } = await this.db.from('users').select('*').eq('email', email).maybeSingle();
+    throwIfError(error, 'Failed to load user');
+    if (data === null) return null;
+    return toUser(data as UserRow);
+  }
+
+  async findByPhone(phone: string): Promise<User | null> {
+    const { data, error } = await this.db.from('users').select('*').eq('phone', phone).maybeSingle();
+    throwIfError(error, 'Failed to load user');
+    if (data === null) return null;
+    return toUser(data as UserRow);
+  }
+
   async listByTenant(tenantId: string): Promise<User[]> {
     const { data, error } = await this.db.from('users').select('*').eq('tenant_id', tenantId);
     throwIfError(error, 'Failed to list users');
