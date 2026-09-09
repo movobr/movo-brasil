@@ -22,6 +22,7 @@ import { SupabaseTenantRepository } from '@movo/brasil/src/infrastructure/supaba
 import { SupabaseRideRepository } from '@movo/brasil/src/infrastructure/supabase/ride-repository.js';
 import { SupabasePaymentStore } from '@movo/brasil/src/infrastructure/supabase/payment-store.js';
 import { SupabaseDriverProfileRepository, SupabasePassengerProfileRepository, SupabaseVehicleRepository } from '@movo/brasil/src/infrastructure/supabase/onboarding.js';
+import { SupabaseUserRepository } from '@movo/brasil/src/infrastructure/supabase/repositories.js';
 import { FakeMapsProvider, DemoPaymentProvider } from './demo-fakes.js';
 
 /**
@@ -70,6 +71,14 @@ interface DemoStores {
 const globals = globalThis as unknown as { __movoDemoStores?: DemoStores };
 
 async function seedDemo(stores: DemoStores): Promise<void> {
+  if ((await stores.users.findByEmail('platform-admin@movo.demo')) === null) {
+    await stores.users.save(
+      User.create({
+        id: randomUUID(), tenantId: null, roleScope: 'PLATFORM', role: 'MOVO_PLATFORM_ADMIN',
+        email: 'platform-admin@movo.demo', phone: null, name: 'Platform Admin', status: 'ACTIVE', now: NOW,
+      }),
+    );
+  }
   for (const slug of ['demo-tenant-a', 'demo-tenant-b']) {
     if ((await stores.tenants.findBySlug(slug)) !== null) continue;
     const tenant = Tenant.provision({ id: randomUUID(), slug, name: slug, now: NOW });
@@ -87,7 +96,13 @@ async function seedDemo(stores: DemoStores): Promise<void> {
     await stores.users.save(
       User.create({
         id: driverUserId, tenantId: tenant.id, roleScope: 'TENANT', role: 'DRIVER',
-        email: null, phone: '+5511999990001', name: 'Motorista Demo', status: 'ACTIVE', now: NOW,
+        email: `driver@${slug}.example`, phone: '+5511999990001', name: 'Motorista Demo', status: 'ACTIVE', now: NOW,
+      }),
+    );
+    await stores.users.save(
+      User.create({
+        id: randomUUID(), tenantId: tenant.id, roleScope: 'TENANT', role: 'OPERATOR',
+        email: `operator@${slug}.example`, phone: null, name: `Operador ${slug}`, status: 'ACTIVE', now: NOW,
       }),
     );
     const profile = DriverProfile.register({ id: randomUUID(), tenantId: tenant.id, userId: driverUserId, status: 'ACTIVE', now: NOW });
@@ -105,10 +120,8 @@ export interface Backend {
   onboarding: OnboardingService;
   orchestrator: RideOrchestrator;
   audits: InMemoryAuditEventRepository | null;
-  users: InMemoryUserRepository | null;
+  users: InMemoryUserRepository | SupabaseUserRepository | null;
   platformActor: ActorContext;
-  demoPassengerActor(tenantId: string): ActorContext;
-  demoDriverUserId(tenantId: string): Promise<string | null>;
   demoBrandingForSlug(slug: string): BrandingConfig | null;
 }
 
@@ -130,10 +143,8 @@ export async function getBackend(): Promise<Backend> {
       onboarding: new OnboardingService(new SupabaseDriverProfileRepository(db), new SupabasePassengerProfileRepository(db), new SupabaseVehicleRepository(db), audits),
       orchestrator: new RideOrchestrator(new SupabaseTenantRepository(db), new SupabaseRideRepository(db), audits, new CollectingPublisher(), maps, payments),
       audits,
-      users: null,
+      users: new SupabaseUserRepository(db),
       platformActor,
-      demoPassengerActor: () => { throw new Error('Demo actors are unavailable with live stores.'); },
-      demoDriverUserId: async () => null,
       demoBrandingForSlug: () => null,
     };
   }
@@ -160,13 +171,6 @@ export async function getBackend(): Promise<Backend> {
     audits: stores.audits,
     users: stores.users,
     platformActor,
-    demoPassengerActor: (tenantId: string): ActorContext => ({
-      userId: `demo-pax-${tenantId}`, tenantId, permissions: ['ride.request', 'ride.read', 'ride.cancel'], correlationId: randomUUID(),
-    }),
-    demoDriverUserId: async (tenantId: string): Promise<string | null> => {
-      const profiles = await stores.drivers.listByTenant(tenantId);
-      return profiles[0]?.userId ?? null;
-    },
     demoBrandingForSlug: (slug: string) => DEMO_BRANDING[slug] ?? null,
   };
 }

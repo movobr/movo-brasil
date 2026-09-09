@@ -4,9 +4,12 @@ import { redirect } from 'next/navigation';
 import { DEFAULT_CATALOG, quoteFare, type RideCategory } from '@movo/brasil/src/domain/pricing.js';
 import { assessCancellation } from '@movo/brasil/src/domain/cancellation.js';
 import { getBackend } from '../../lib/backend.js';
+import { requireSession } from '../../lib/require-session.js';
 import { FakeMapsProvider } from '../../lib/demo-fakes.js';
 
 async function tenantBySlug(slug: string) {
+  // Resolução interna server-side (nunca exposta); a autorização de cada
+  // ato usa o ator da sessão.
   const backend = await getBackend();
   const tenants = await backend.tenants.listTenants(backend.platformActor);
   const tenant = tenants.find((t) => t.slug === slug);
@@ -16,6 +19,10 @@ async function tenantBySlug(slug: string) {
 
 function backTo(rideId: string, slug: string, extra = ''): never {
   redirect(`/ride/${rideId}?tenant=${slug}${extra}`);
+}
+
+function failure(rideId: string, slug: string, error: unknown): never {
+  backTo(rideId, slug, `&opError=${encodeURIComponent(error instanceof Error ? error.message : 'Falha.')}`);
 }
 
 export async function computeQuote(input: { origin: string; destination: string; category: RideCategory }) {
@@ -39,52 +46,44 @@ export async function computeQuote(input: { origin: string; destination: string;
 }
 
 export async function requestRideAction(formData: FormData): Promise<never> {
+  const actor = await requireSession();
   const slug = String(formData.get('tenant') ?? '');
   const origin = String(formData.get('origin') ?? '');
   const destination = String(formData.get('destination') ?? '');
   const category = String(formData.get('category') ?? 'car') as RideCategory;
   const paymentMethod = String(formData.get('payment') ?? 'card') as 'pix' | 'card';
   const { backend, tenant } = await tenantBySlug(slug);
-  const actor = backend.demoPassengerActor(tenant.id);
+  if (actor.tenantId !== tenant.id) throw new Error('Sessão de outro tenant.');
   const { ride } = await backend.orchestrator.requestRide(actor, { origin, destination, category, paymentMethod });
   redirect(`/ride/${ride.id}?tenant=${slug}`);
 }
 
 export async function startMatchingAction(rideId: string, slug: string): Promise<never> {
+  const actor = await requireSession();
   const { backend } = await tenantBySlug(slug);
   try {
-    await backend.orchestrator.startMatching(backend.platformActor, rideId);
+    await backend.orchestrator.startMatching(actor, rideId);
   } catch (error) {
-    backTo(rideId, slug, `&opError=${encodeURIComponent(error instanceof Error ? error.message : 'Falha ao buscar motorista.')}`);
-  }
-  backTo(rideId, slug);
-}
-
-export async function acceptDemoAction(rideId: string, slug: string): Promise<never> {
-  const { backend, tenant } = await tenantBySlug(slug);
-  try {
-    const driverUserId = await backend.demoDriverUserId(tenant.id);
-    if (driverUserId === null) throw new Error('Sem motorista demo verificado.');
-    await backend.orchestrator.acceptOffer(backend.platformActor, rideId, driverUserId);
-  } catch (error) {
-    backTo(rideId, slug, `&opError=${encodeURIComponent(error instanceof Error ? error.message : 'Falha no aceite.')}`);
+    failure(rideId, slug, error);
   }
   backTo(rideId, slug);
 }
 
 export async function advanceAction(rideId: string, slug: string, to: string, trigger: string): Promise<never> {
+  const actor = await requireSession();
   const { backend } = await tenantBySlug(slug);
   try {
-    await backend.orchestrator.advanceRide(backend.platformActor, rideId, to as never, trigger);
+    await backend.orchestrator.advanceRide(actor, rideId, to as never, trigger);
   } catch (error) {
-    backTo(rideId, slug, `&opError=${encodeURIComponent(error instanceof Error ? error.message : 'Transição inválida.')}`);
+    failure(rideId, slug, error);
   }
   backTo(rideId, slug);
 }
 
 export async function cancelRideAction(rideId: string, slug: string): Promise<never> {
+  const actor = await requireSession();
   const { backend } = await tenantBySlug(slug);
-  const ride = await backend.orchestrator.getRide(backend.platformActor, rideId);
+  const ride = await backend.orchestrator.getRide(actor, rideId);
   try {
     const outcome = assessCancellation({
       status: ride.status,
@@ -94,9 +93,9 @@ export async function cancelRideAction(rideId: string, slug: string): Promise<ne
       exceptionalApproval: false,
       reason: 'passenger-request',
     });
-    await backend.orchestrator.advanceRide(backend.platformActor, rideId, 'CANCELLED', 'passenger');
+    await backend.orchestrator.advanceRide(actor, rideId, 'CANCELLED', 'passenger');
     backTo(rideId, slug, `&fee=${outcome.feeMinor}`);
   } catch (error) {
-    backTo(rideId, slug, `&opError=${encodeURIComponent(error instanceof Error ? error.message : 'Cancelamento não permitido.')}`);
+    failure(rideId, slug, error);
   }
 }

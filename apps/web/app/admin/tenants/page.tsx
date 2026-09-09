@@ -1,12 +1,21 @@
 import { DataStates } from '../../../components/DataStates.js';
 import { getBackend } from '../../../lib/backend.js';
+import { requireSession } from '../../../lib/require-session.js';
 
-/** Platform admin → tenants (23): lista governada por permissão explícita. */
+/** Platform admin → tenants (23): sessão de plataforma exigida. */
 export default async function TenantsAdminPage() {
+  const actor = await requireSession().catch(() => null);
+  if (actor === null || actor.tenantId !== null) {
+    return (
+      <DataStates state="forbidden">
+        <></>
+      </DataStates>
+    );
+  }
   const backend = await getBackend();
   let tenants;
   try {
-    tenants = await backend.tenants.listTenants(backend.platformActor);
+    tenants = await backend.tenants.listTenants(actor);
   } catch {
     return (
       <DataStates state="forbidden">

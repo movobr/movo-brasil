@@ -2,8 +2,11 @@ import type { ReactNode } from 'react';
 import './globals.css';
 import { OnlineStatus } from '../components/DataStates.js';
 import { PLATFORM_THEME_STYLE } from '../lib/theme.js';
+import { readSession } from '../lib/require-session.js';
+import { logoutAction } from './login/actions.js';
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default async function RootLayout({ children }: { children: ReactNode }) {
+  const session = await readSession();
   return (
     <html lang="pt-BR">
       <body>
@@ -32,6 +35,15 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                 </li>
               </ul>
             </nav>
+            {session !== null ? (
+              <form action={logoutAction}>
+                <button type="submit">Sair</button>
+              </form>
+            ) : (
+              <p>
+                <a href="/login">Entrar</a>
+              </p>
+            )}
           </aside>
           <main id="conteudo" className="main" tabIndex={-1}>
             {children}

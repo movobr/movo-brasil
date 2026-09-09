@@ -158,7 +158,10 @@ export class RideOrchestrator {
   }
 
   async advanceRide(actor: ActorContext, rideId: string, to: RideStatus, trigger: string): Promise<Ride> {
-    const ride = await this.requireRide(actor, rideId, RIDE_PERMISSIONS.rideDispatch);
+    // 09 distingue ride.cancel de ride.dispatch: o passageiro cancela a
+    // própria corrida com ride.cancel; demais transições exigem dispatch.
+    const permission = to === 'CANCELLED' ? RIDE_PERMISSIONS.rideCancel : RIDE_PERMISSIONS.rideDispatch;
+    const ride = await this.requireRide(actor, rideId, permission);
     ride.transitionTo(to, trigger, this.clock.now());
     await this.rides.save(ride);
     const eventType = STATUS_EVENTS[to];

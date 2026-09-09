@@ -2,6 +2,7 @@
 
 import { redirect } from 'next/navigation';
 import { getBackend } from '../../lib/backend.js';
+import { requireSession } from '../../lib/require-session.js';
 
 async function tenantBySlug(slug: string) {
   const backend = await getBackend();
@@ -16,12 +17,11 @@ function backToDriver(slug: string, extra = ''): never {
 }
 
 export async function toggleAvailabilityAction(slug: string, available: string): Promise<never> {
-  const { backend, tenant } = await tenantBySlug(slug);
+  const actor = await requireSession();
+  const { backend } = await tenantBySlug(slug);
   try {
-    const driverUserId = await backend.demoDriverUserId(tenant.id);
-    if (driverUserId === null) throw new Error('Sem motorista demo.');
-    const profile = await backend.onboarding.getDriverProfileByUser(backend.platformActor, driverUserId);
-    await backend.onboarding.setAvailability(backend.platformActor, profile.id, available === 'on');
+    const profile = await backend.onboarding.getDriverProfileByUser(actor, actor.userId);
+    await backend.onboarding.setAvailability(actor, profile.id, available === 'on');
   } catch (error) {
     backToDriver(slug, `&opError=${encodeURIComponent(error instanceof Error ? error.message : 'Falha.')}`);
   }
@@ -29,11 +29,11 @@ export async function toggleAvailabilityAction(slug: string, available: string):
 }
 
 export async function acceptRideAction(rideId: string, slug: string): Promise<never> {
-  const { backend, tenant } = await tenantBySlug(slug);
+  const actor = await requireSession();
+  const { backend } = await tenantBySlug(slug);
   try {
-    const driverUserId = await backend.demoDriverUserId(tenant.id);
-    if (driverUserId === null) throw new Error('Sem motorista demo.');
-    await backend.orchestrator.acceptOffer(backend.platformActor, rideId, driverUserId);
+    const profile = await backend.onboarding.getDriverProfileByUser(actor, actor.userId);
+    await backend.orchestrator.acceptOffer(actor, rideId, profile.userId);
     redirect(`/ride/${rideId}?tenant=${slug}`);
   } catch (error) {
     backToDriver(slug, `&opError=${encodeURIComponent(error instanceof Error ? error.message : 'Falha no aceite.')}`);

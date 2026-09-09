@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import { DataStates } from '../../../components/DataStates.js';
 import { getBackend } from '../../../lib/backend.js';
+import { requireSession } from '../../../lib/require-session.js';
 
 /** 26-10 Ride History: lista e detalhe das corridas permitidas. */
 export default async function RideHistoryPage({
@@ -8,12 +9,20 @@ export default async function RideHistoryPage({
 }: {
   searchParams: Promise<{ tenant?: string }>;
 }) {
+  const actor = await requireSession().catch(() => null);
+  if (actor === null) {
+    return (
+      <DataStates state="forbidden">
+        <></>
+      </DataStates>
+    );
+  }
   const slug = (await searchParams).tenant ?? 'demo-tenant-a';
   const backend = await getBackend();
   const tenants = await backend.tenants.listTenants(backend.platformActor);
   const tenant = tenants.find((t) => t.slug === slug);
-  if (tenant === undefined) notFound();
-  const rides = await backend.orchestrator.listTenantRides(backend.platformActor, tenant.id);
+  if (tenant === undefined || tenant.id !== actor.tenantId) notFound();
+  const rides = await backend.orchestrator.listTenantRides(actor, tenant.id);
   if (rides.length === 0) {
     return (
       <DataStates state="empty" emptyMessage="Nenhuma corrida ainda. Peça a primeira na cotação.">

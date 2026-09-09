@@ -129,3 +129,10 @@ Rastreabilidade: `docs/TRACEABILITY-FASE-13.md`.
 Disponibilidade, ofertas do matching com aceite verificado e ganhos
 (80% do cotado) — tudo sobre os serviços reais.
 Rastreabilidade: `docs/TRACEABILITY-FASE-14.md`.
+
+## Fase 15 — Auth web real (DEC-TECH-005, 33)
+
+Login, sessão selada HMAC, MFA pela política real, atores demo
+aposentados (multi-ator de verdade: passageiro, operador, motorista,
+admin). `SESSION_SECRET` + `ALLOW_DEMO_AUTH=true` no dev.
+Rastreabilidade: `docs/TRACEABILITY-FASE-15.md`.
