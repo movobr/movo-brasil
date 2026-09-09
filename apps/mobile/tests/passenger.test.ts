@@ -21,7 +21,13 @@ describe('passenger journey (21)', () => {
     expect(isDriverPositionStale(new Date(NOW.getTime() - 19_000), NOW)).toBe(false);
   });
 
-  it('builds the receipt with the contracted engine', () => {
+  it('covers the payment states too (12)', () => {
+    expect(stepLabel('PAYMENT_PENDING')).toBe('Processando pagamento…');
+    expect(stepLabel('PAID')).toBe('Paga');
+    expect(stepLabel('PAYMENT_FAILED')).toBe('Pagamento falhou');
+  });
+
+  it('uses the contracted payment types (15)', () => {
     const receipt = trackingReceipt({
       rideId: 'r-1',
       tenantId: 't-a',
@@ -40,11 +46,12 @@ describe('passenger journey (21)', () => {
     expect(isPaymentChoice('cash')).toBe(false);
   });
 
-  it('totals only completed rides', () => {
+  it('totals paid amounts, never quotes (40)', () => {
     expect(
       completedTotalMinor([
-        { rideId: 'a', status: 'COMPLETED', quotedMinor: 2500 },
-        { rideId: 'b', status: 'CANCELLED', quotedMinor: 9999 },
+        { rideId: 'a', status: 'COMPLETED', quotedMinor: 2500, paidMinor: 2500 },
+        { rideId: 'b', status: 'CANCELLED', quotedMinor: 9999, paidMinor: null },
+        { rideId: 'c', status: 'COMPLETED', quotedMinor: 2500, paidMinor: null },
       ]),
     ).toBe(2500);
   });

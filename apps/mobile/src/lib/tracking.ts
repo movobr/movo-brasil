@@ -1,20 +1,16 @@
 import { classifyFreshness } from '@movo/brasil/src/domain/driver-location.js';
 import { buildReceipt } from '@movo/brasil/src/domain/receipt.js';
+import type { PaymentMethod, PaymentStatus } from '@movo/brasil/src/domain/payment.js';
+import type { RideStatus } from '@movo/brasil/src/domain/ride.js';
 
 /**
  * Lógica de apresentação do tracking — 21 (áreas 7/8/9/10/11).
  * Estados e recibo usam os motores do backend; posição do motorista
  * exibe aviso de stale pela regra contratada (16: >20 s).
  */
-export type TrackingStatus =
-  | 'REQUESTED'
-  | 'MATCHING'
-  | 'ACCEPTED'
-  | 'DRIVER_ARRIVING'
-  | 'DRIVER_ARRIVED'
-  | 'IN_PROGRESS'
-  | 'COMPLETED'
-  | 'CANCELLED';
+
+/** Espelha a tabela fechada 12: sem estados próprios no cliente. */
+export type TrackingStatus = RideStatus;
 
 const STEP_LABELS: Record<TrackingStatus, string> = {
   REQUESTED: 'Corrida solicitada',
@@ -25,6 +21,9 @@ const STEP_LABELS: Record<TrackingStatus, string> = {
   IN_PROGRESS: 'Em viagem',
   COMPLETED: 'Concluída',
   CANCELLED: 'Cancelada',
+  PAYMENT_PENDING: 'Processando pagamento…',
+  PAID: 'Paga',
+  PAYMENT_FAILED: 'Pagamento falhou',
 };
 
 export function stepLabel(status: TrackingStatus): string {
@@ -40,8 +39,8 @@ export interface TrackingReceiptInput {
   rideId: string;
   tenantId: string;
   quotedMinor: number;
-  paymentMethod: 'pix' | 'card' | null;
-  paymentStatus: 'pending' | 'paid' | 'failed' | 'expired' | 'refunded' | 'refund_pending' | null;
+  paymentMethod: PaymentMethod | null;
+  paymentStatus: PaymentStatus | null;
   paidMinor: number | null;
   completedAt: Date | null;
 }
@@ -68,11 +67,13 @@ export interface HistoryEntry {
   readonly rideId: string;
   readonly status: TrackingStatus;
   readonly quotedMinor: number;
+  /** Valor pago (autoridade: ledger). Null = ainda não pago/desconhecido. */
+  readonly paidMinor: number | null;
 }
 
-/** Total gasto em corridas concluídas (apresentação; autoridade no ledger). */
+/** Total pago (apresentação; autoridade no ledger; cotação não é gasto). */
 export function completedTotalMinor(entries: ReadonlyArray<HistoryEntry>): number {
   return entries
-    .filter((entry) => entry.status === 'COMPLETED')
-    .reduce((sum, entry) => sum + entry.quotedMinor, 0);
+    .filter((entry) => entry.status === 'COMPLETED' || entry.status === 'PAID')
+    .reduce((sum, entry) => sum + (entry.paidMinor ?? 0), 0);
 }

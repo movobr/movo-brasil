@@ -36,10 +36,15 @@ export default function App() {
         <TrackingScreen
           branding={null}
           status="MATCHING"
+          rideId="device-ride"
+          tenantId="device-tenant"
           driverName={null}
           etaSeconds={null}
           driverUpdatedAt={null}
           quotedMinor={0}
+          paymentMethod={null}
+          paymentStatus={null}
+          paidMinor={null}
           now={new Date()}
           screenState="ready"
         />

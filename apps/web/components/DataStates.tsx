@@ -53,6 +53,7 @@ export function DataStates({
   if (state === 'loading' || state === 'retrying' || state === 'idle') {
     return (
       <div role="status" aria-live="polite">
+        <h1>{state === 'idle' ? 'Aguardando' : 'Carregando'}</h1>
         <p>{state === 'idle' ? 'Aguardando…' : 'Carregando…'}</p>
       </div>
     );
@@ -60,6 +61,7 @@ export function DataStates({
   if (state === 'error') {
     return (
       <div className="alert" role="alert">
+        <h1>Algo deu errado</h1>
         <p>Algo deu errado: {error ?? 'erro desconhecido.'}</p>
         <p>
           <a className="button" href="">
@@ -72,6 +74,7 @@ export function DataStates({
   if (state === 'forbidden') {
     return (
       <div className="alert" role="alert">
+        <h1>Acesso negado</h1>
         <p>Você não tem permissão para ver este conteúdo.</p>
       </div>
     );
@@ -79,6 +82,7 @@ export function DataStates({
   if (state === 'empty') {
     return (
       <div role="status">
+        <h1>Nada por aqui</h1>
         <p>{emptyMessage ?? 'Nenhum item encontrado.'}</p>
       </div>
     );

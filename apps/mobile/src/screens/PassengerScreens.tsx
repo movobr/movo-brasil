@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Button, Text, View } from 'react-native';
 import type { BrandingConfig } from '@movo/brasil/src/domain/branding.js';
+import type { PaymentMethod, PaymentStatus } from '@movo/brasil/src/domain/payment.js';
 import { paletteFor } from '../lib/theme.js';
 import { formatBrl } from '../lib/quote.js';
 import {
@@ -24,19 +25,29 @@ export type PassengerScreenState = 'loading' | 'ready' | 'empty' | 'error' | 'st
 export function TrackingScreen({
   branding,
   status,
+  rideId,
+  tenantId,
   driverName,
   etaSeconds,
   driverUpdatedAt,
   quotedMinor,
+  paymentMethod,
+  paymentStatus,
+  paidMinor,
   now,
   screenState,
 }: {
   branding: BrandingConfig | null;
   status: TrackingStatus;
+  rideId: string;
+  tenantId: string;
   driverName: string | null;
   etaSeconds: number | null;
   driverUpdatedAt: Date | null;
   quotedMinor: number;
+  paymentMethod: PaymentMethod | null;
+  paymentStatus: PaymentStatus | null;
+  paidMinor: number | null;
   now: Date;
   screenState: PassengerScreenState;
 }) {
@@ -56,7 +67,7 @@ export function TrackingScreen({
     );
   }
   const stalePosition =
-    driverUpdatedAt !== null && status !== 'COMPLETED' && status !== 'CANCELLED'
+    driverUpdatedAt !== null && ['ACCEPTED', 'DRIVER_ARRIVING', 'DRIVER_ARRIVED', 'IN_PROGRESS'].includes(status)
       ? isDriverPositionStale(driverUpdatedAt, now)
       : false;
   let receiptMinor: number | null = null;
@@ -64,12 +75,12 @@ export function TrackingScreen({
     receiptMinor =
       status === 'COMPLETED'
         ? trackingReceipt({
-            rideId: 'device-ride',
-            tenantId: 'device-tenant',
+            rideId,
+            tenantId,
             quotedMinor,
-            paymentMethod: null,
-            paymentStatus: null,
-            paidMinor: null,
+            paymentMethod,
+            paymentStatus,
+            paidMinor,
             completedAt: now,
           }).quotedMinor
         : null;
@@ -135,7 +146,7 @@ export function PaymentSheet({
   );
 }
 
-/** Histórico (21 área 13) com total de concluídas. */
+/** Histórico (21 área 13) com total do que foi pago (ledger; não cotação). */
 export function HistoryScreen({
   branding,
   entries,
