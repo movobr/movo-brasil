@@ -1,24 +1,24 @@
 {
-  "name": "@movo/brasil",
+  "name": "@movo/mono",
   "version": "0.1.0",
   "private": true,
-  "description": "MOVO Brasil — SaaS de mobilidade multi-tenant e white-label (Fase 1: fundação multi-tenant).",
-  "type": "module",
+  "description": "MOVO Brasil — monorepo (backend + apps).",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
   "scripts": {
-    "typecheck": "tsc --noEmit",
-    "lint": "node scripts/lint.js",
-    "test": "vitest run",
-    "test:integration": "vitest run tests/integration",
-    "build": "tsc -p tsconfig.build.json"
-  },
-  "dependencies": {
-    "@supabase/supabase-js": "2.116.0",
-    "mercadopago": "2.13.0"
-  },
-  "devDependencies": {
-    "@types/node": "22.10.2",
-    "typescript": "5.7.3",
-    "vitest": "2.1.8"
+    "backend:typecheck": "npm --workspace @movo/brasil run typecheck",
+    "backend:lint": "npm --workspace @movo/brasil run lint",
+    "backend:test": "npm --workspace @movo/brasil run test",
+    "backend:build": "npm --workspace @movo/brasil run build",
+    "web:dev": "npm --workspace @movo/web run dev",
+    "web:typecheck": "npm --workspace @movo/web run typecheck",
+    "web:test": "npm --workspace @movo/web run test",
+    "web:build": "npm --workspace @movo/web run build",
+    "typecheck": "npm run backend:typecheck && npm run web:typecheck",
+    "test": "npm run backend:test && npm run web:test",
+    "build": "npm run backend:build && npm run web:build"
   },
   "engines": {
     "node": ">=20"

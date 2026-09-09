@@ -1,0 +1,243 @@
+/**
+ * Tema da plataforma (fallback) + base responsiva/acessível.
+ * Tokens semânticos (27): componentes consomem variáveis, nunca valores
+ * hard-coded. Breakpoints do contrato 28; alvos de toque 44px; foco
+ * visível e reduced-motion do 29.
+ */
+:root {
+  --color-primary: #00a86b;
+  --color-on-primary: #ffffff;
+  --color-surface: #ffffff;
+  --color-on-surface: #101613;
+  --color-muted: #5c665f;
+  --color-border: #dfe5e1;
+  --color-danger: #b3261e;
+  --radius-md: 10px;
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background: var(--color-surface);
+  color: var(--color-on-surface);
+}
+
+a {
+  color: var(--color-primary);
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+button,
+a.button,
+input,
+select {
+  min-height: 44px;
+}
+
+button {
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-on-surface);
+  padding: 0 16px;
+  font: inherit;
+}
+
+button.primary {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+}
+
+.skip-link:focus {
+  left: 8px;
+  top: 8px;
+  z-index: 100;
+  background: var(--color-surface);
+  padding: 8px 12px;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  min-height: 100vh;
+}
+
+.sidebar {
+  border-right: 1px solid var(--color-border);
+  padding: 16px;
+}
+
+.sidebar nav ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.sidebar nav a {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 12px;
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  color: inherit;
+}
+
+.sidebar nav a[aria-current='page'] {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+.main {
+  padding: 24px;
+  max-width: 1100px;
+}
+
+.card {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.badge {
+  display: inline-block;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  padding: 2px 10px;
+  font-size: 0.85rem;
+}
+
+.badge[data-tone='ok'] {
+  border-color: var(--color-primary);
+}
+
+.badge[data-tone='bad'] {
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+}
+
+.table-responsive {
+  overflow-x: auto;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+th {
+  font-weight: 600;
+}
+
+.alert {
+  border: 1px solid var(--color-danger);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+}
+
+.offline-banner {
+  background: #101613;
+  color: #ffffff;
+  padding: 8px 16px;
+  text-align: center;
+}
+
+/* 28: 320–359 small mobile, 360–767 mobile, 768–1023 tablet. */
+@media (max-width: 1023px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    border-right: none;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .sidebar nav ul {
+    grid-auto-flow: column;
+    overflow-x: auto;
+  }
+
+  .main {
+    padding: 16px;
+  }
+}
+
+/* 28: tabelas densas viram cartões em telas pequenas. */
+@media (max-width: 767px) {
+  .table-cards table,
+  .table-cards tbody,
+  .table-cards tr,
+  .table-cards td {
+    display: block;
+    width: 100%;
+  }
+
+  .table-cards thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+
+  .table-cards tr {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    margin-bottom: 12px;
+  }
+
+  .table-cards td {
+    border-bottom: none;
+  }
+
+  .table-cards td::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 0.8rem;
+    color: var(--color-muted);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

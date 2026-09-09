@@ -8,19 +8,22 @@ pagamentos (fases donas futuras).
 ## Stack (decisões do Blueprint)
 
 - Backend: TypeScript strict, modular monolith (`src/domain`, `src/application`, `src/infrastructure`)
-- Banco: PostgreSQL via Supabase Cloud (migration `db/migrations/0001_foundation.sql`)
+- Banco: PostgreSQL via Supabase Cloud (migrations em `packages/backend/db/migrations/`)
 - Auth: Supabase Auth (integração viva exige credenciais — ver abaixo)
 
-## Comandos reais
+## Comandos reais (monorepo: raiz delega aos workspaces)
 
 ```bash
 npm install
-npm run typecheck   # tsc --noEmit (G1)
-npm run lint        # sem dependências: proíbe `any` explícito e console.* em src/ (G1)
-npm test            # vitest offline: unit + isolamento + contrato (G2/G3)
-npm run build       # emit para dist/
-npm run test:integration  # exige SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY
+npm run typecheck   # backend tsc + web tsc (G1)
+npm run backend:lint
+npm run test        # backend vitest + web vitest (G2/G3)
+npm run build       # backend dist/ + next build (G1)
+npm run web:dev     # Next em desenvolvimento
+npm run backend:test --workspace @movo/brasil  # escopo por pacote
 ```
+
+Comandos por pacote vivem em `packages/backend` e `apps/web`.
 
 Sem credenciais Supabase, os testes de integração viva pulam
 automaticamente; todo o restante roda offline.
@@ -93,3 +96,11 @@ Rastreabilidade: `docs/TRACEABILITY-FASE-8.md`.
 Planos Launch/Growth/Enterprise, trial 14 dias, grace 7 dias, cobrança no
 ledger `saas` separado, limites por plano, operações auditadas.
 Rastreabilidade: `docs/TRACEABILITY-FASE-9.md`.
+
+## Fase 10 — Web Next.js (DEC-TECH-002, 26/27/28/29/71)
+
+Monorepo (`packages/backend`, `apps/web`): home do tenant com tema,
+admin de tenants (lista + detalhe com assinatura e auditoria), estados
+de UI, offline, responsivo e base acessível — tudo em dados dos
+serviços reais (demo A/B sem credenciais, Supabase com).
+Rastreabilidade: `docs/TRACEABILITY-FASE-10.md`.

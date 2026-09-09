@@ -118,6 +118,15 @@ export class TenantService {
     return this.requireTenant(actor, tenantId, PERMISSIONS.tenantRead);
   }
 
+  /** Módulo tenants do platform admin (23): somente principais de plataforma. */
+  async listTenants(actor: ActorContext): Promise<Tenant[]> {
+    if (actor.tenantId !== null) {
+      throw new DomainError('UNAUTHORIZED', 'Only platform administration may list tenants.');
+    }
+    authorize(actor, PERMISSIONS.tenantRead);
+    return this.tenants.listAll();
+  }
+
   private async requireTenant(actor: ActorContext, tenantId: string, permission: string): Promise<Tenant> {
     authorize(actor, permission, tenantId);
     const tenant = await this.tenants.findById(tenantId);

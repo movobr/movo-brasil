@@ -80,6 +80,15 @@ export class SubscriptionService {
     return subscription;
   }
 
+  async getSubscription(actor: ActorContext, tenantId: string): Promise<Subscription> {
+    authorize(actor, BILLING_PERMISSIONS.subscriptionRead, tenantId);
+    const subscription = await this.subscriptions.findByTenantId(tenantId);
+    if (subscription === null) {
+      throw new DomainError('NOT_FOUND', `Subscription not found for tenant: ${tenantId}.`);
+    }
+    return subscription;
+  }
+
   private async requireSubscription(actor: ActorContext, tenantId: string): Promise<Subscription> {
     authorize(actor, BILLING_PERMISSIONS.subscriptionManage, tenantId);
     const subscription = await this.subscriptions.findByTenantId(tenantId);
