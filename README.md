@@ -81,3 +81,9 @@ RideOrchestrator: request→pricing→ride→pagamento→dispatch→conclusão, 
 pré-pago, bloqueio de tenant não-ACTIVE, eventos versionados (17), rota via
 adapter (16), migration 0002 (rides/payments + RLS).
 Rastreabilidade: `docs/TRACEABILITY-FASE-7.md`.
+
+## Fase 8 — Onboarding (58, 20/21)
+
+Verificação fechada (APPLICATION→APPROVED), disponibilidade, perfis e
+veículos, gate de aceite para não verificados, migration 0003 + RLS.
+Rastreabilidade: `docs/TRACEABILITY-FASE-8.md`.

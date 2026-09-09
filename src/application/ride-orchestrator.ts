@@ -8,6 +8,7 @@ import { RIDE_EVENTS, type DomainEvent, type EventPublisher } from './event-port
 import type { MapsProvider } from './maps-ports.js';
 import type { AuditEventRepository, TenantRepository } from './repositories.js';
 import type { RideRepository } from './ride-repositories.js';
+import type { DriverProfileRepository } from './onboarding-service.js';
 import { PaymentService } from './payment-service.js';
 
 /**
@@ -55,6 +56,7 @@ export class RideOrchestrator {
     private readonly payments: PaymentService,
     private readonly clock: { now: () => Date } = { now: () => new Date() },
     private readonly newId: () => string = randomUUID,
+    private readonly drivers?: DriverProfileRepository,
   ) {}
 
   async requestRide(
@@ -140,6 +142,13 @@ export class RideOrchestrator {
 
   async acceptOffer(actor: ActorContext, rideId: string, driverId: string): Promise<Ride> {
     const ride = await this.requireRide(actor, rideId, RIDE_PERMISSIONS.rideAccept);
+    // 58: sem ofertas em produção antes da verificação aprovada.
+    if (this.drivers !== undefined) {
+      const profile = await this.drivers.findByUserId(driverId);
+      if (profile === null || !profile.canReceiveOffers()) {
+        throw new DomainError('UNAUTHORIZED', 'Driver is not verified and available for offers.', { driverId });
+      }
+    }
     ride.assignDriver(driverId);
     ride.transitionTo('ACCEPTED', 'driver-acceptance', this.clock.now());
     await this.rides.save(ride);

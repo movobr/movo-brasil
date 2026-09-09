@@ -59,3 +59,22 @@ describe('migration 0002 contract (11)', () => {
     expect(SQL2).toMatch(/alter table payments enable row level security/i);
   });
 });
+
+const SQL3 = readFileSync(new URL('../../db/migrations/0003_onboarding.sql', import.meta.url), 'utf8');
+
+describe('migration 0003 contract (11)', () => {
+  it('creates profiles and vehicles with tenant ownership', () => {
+    expect(SQL3).toMatch(/create table if not exists driver_profiles \(/i);
+    expect(SQL3).toMatch(/create table if not exists passenger_profiles \(/i);
+    expect(SQL3).toMatch(/create table if not exists vehicles \(/i);
+    expect(SQL3).toMatch(/user_id uuid unique not null references users \(id\)/i);
+    expect(SQL3).toMatch(/verification_status text not null/i);
+    expect(SQL3).toMatch(/driver_user_id uuid not null references users \(id\)/i);
+  });
+
+  it('enables deny-by-default RLS on all three tables', () => {
+    expect(SQL3).toMatch(/alter table driver_profiles enable row level security/i);
+    expect(SQL3).toMatch(/alter table passenger_profiles enable row level security/i);
+    expect(SQL3).toMatch(/alter table vehicles enable row level security/i);
+  });
+});
