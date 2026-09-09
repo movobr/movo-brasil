@@ -52,3 +52,11 @@ surge 1.00–1.80 sobre componentes antes de descontos/pedágios, cupom + 1
 promoção automática com teto no subtotal, cotação expira em 2 min ou com
 troca de origem/destino.
 Rastreabilidade: `docs/TRACEABILITY-FASE-3.md`.
+
+## Fase 4 — Dispatch/matching V1 (DEC-DISP-001..008, REQ-MATCH-001)
+
+Política pura e determinística: elegibilidade (7 critérios), ranking
+lexicográfico (ETA, frescura, ociosidade, UUID), ondas 2/4/7 km com até 5
+ofertas e 12 s, vencedor único (aceites tardios = CONFLICT), outcome
+`no_driver_available` + evento após a onda 3.
+Rastreabilidade: `docs/TRACEABILITY-FASE-4.md`.
