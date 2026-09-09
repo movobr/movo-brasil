@@ -2,10 +2,11 @@ import { useState } from 'react';
 import { View } from 'react-native';
 import { AuthScreen } from './src/screens/AuthScreen.js';
 import { DriverScreen } from './src/screens/DriverScreen.js';
+import { HistoryScreen, PaymentSheet, TrackingScreen } from './src/screens/PassengerScreens.js';
 import { HomeScreen } from './src/screens/HomeScreen.js';
 import { QuoteScreen } from './src/screens/QuoteScreen.js';
 
-type Route = 'auth' | 'home' | 'quote' | 'driver';
+type Route = 'auth' | 'home' | 'quote' | 'driver' | 'tracking' | 'history' | 'payment';
 
 /** Composição mínima (navegador dedicado chega com mais telas). */
 export default function App() {
@@ -31,6 +32,20 @@ export default function App() {
       {route === 'driver' ? (
         <DriverScreen branding={null} offers={[]} activeRide={null} screenState="empty" onNavigate={() => {}} />
       ) : null}
+      {route === 'tracking' ? (
+        <TrackingScreen
+          branding={null}
+          status="MATCHING"
+          driverName={null}
+          etaSeconds={null}
+          driverUpdatedAt={null}
+          quotedMinor={0}
+          now={new Date()}
+          screenState="ready"
+        />
+      ) : null}
+      {route === 'history' ? <HistoryScreen branding={null} entries={[]} screenState="empty" /> : null}
+      {route === 'payment' ? <PaymentSheet selected="pix" onSelect={() => {}} /> : null}
     </View>
   );
 }

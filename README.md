@@ -174,3 +174,9 @@ Painel do motorista (disponibilidade, ofertas com aceite em 2 toques,
 corrida ativa, ganhos pelo split real), tracker 5/15 s por porta e
 handoff de navegação. Sync servidor: API futura.
 Rastreabilidade: `docs/TRACEABILITY-FASE-21.md`.
+
+## Fase 22 — Passageiro no mobile (21)
+
+Tracking com aviso de stale, recibo real, seleção Pix/cartão sem
+processar no cliente, histórico com total. Busca/request: futuros.
+Rastreabilidade: `docs/TRACEABILITY-FASE-22.md`.
