@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import { randomUUID } from 'node:crypto';
+import { buildReceipt } from '@movo/brasil/src/domain/receipt.js';
 import { DataStates } from '../../../components/DataStates.js';
 import { getBackend } from '../../../lib/backend.js';
 import { requireSession } from '../../../lib/require-session.js';
@@ -107,7 +108,7 @@ export default async function RideStatusPage({
         </form>
       ) : null}
       {ride.status === 'COMPLETED' ? (
-        <p role="status">Corrida concluída. Recibo e avaliação chegam na fase de pós-corrida.</p>
+        <ReceiptSection rideId={ride.id} tenantId={tenant.id} quotedMinor={ride.quotedMinor} completedAt={ride.completedAt} />
       ) : null}
       {ride.status === 'CANCELLED' ? <p role="status">Corrida cancelada.</p> : null}
       {ride.driverId !== null && backend.chat !== null ? (
@@ -167,5 +168,64 @@ async function ChatThread({ rideId, slug, tenantId, actor }: { rideId: string; s
         <button className="primary" type="submit">Enviar</button>
       </form>
     </div>
+  );
+}
+
+/** 26-9: recibo pós-corrida (read-model; avaliação = UNSPECIFIED-008). */
+async function ReceiptSection({ rideId, tenantId, quotedMinor, completedAt }: { rideId: string; tenantId: string; quotedMinor: number; completedAt: Date | null }) {
+  const backend = await getBackend();
+  const intents = await backend.paymentIntentsForRide(rideId).catch(() => []);
+  const latest = intents[intents.length - 1] ?? null;
+  let receipt;
+  try {
+    receipt = buildReceipt({
+      rideId,
+      tenantId,
+      rideStatus: 'COMPLETED',
+      quotedMinor,
+      tenantDiscountsMinor: 0,
+      movoDiscountsMinor: 0,
+      paymentMethod: latest?.method ?? null,
+      paymentStatus: latest?.status ?? null,
+      paidMinor: latest?.amountMinor ?? null,
+      completedAt,
+    });
+  } catch {
+    return <p role="status">Recibo indisponível.</p>;
+  }
+  const brl = (minor: number) => `R$ ${(minor / 100).toFixed(2).replace('.', ',')}`;
+  return (
+    <section className="card" aria-label="Recibo">
+      <h2>Recibo</h2>
+      <dl>
+        <div>
+          <dt>Tarifa final</dt>
+          <dd>{brl(receipt.quotedMinor)}</dd>
+        </div>
+        <div>
+          <dt>Motorista (80%)</dt>
+          <dd>{brl(receipt.split.driverMinor)}</dd>
+        </div>
+        <div>
+          <dt>Operador (17%)</dt>
+          <dd>{brl(receipt.split.tenantMinor)}</dd>
+        </div>
+        <div>
+          <dt>Plataforma</dt>
+          <dd>{brl(receipt.split.movoMinor)}</dd>
+        </div>
+        <div>
+          <dt>Pagamento</dt>
+          <dd>{receipt.paymentMethod ?? '—'} · {receipt.paymentStatus ?? 'sem registro'}</dd>
+        </div>
+        <div>
+          <dt>Concluída em</dt>
+          <dd>
+            <time dateTime={receipt.completedAt.toISOString()}>{receipt.completedAt.toLocaleString('pt-BR')}</time>
+          </dd>
+        </div>
+      </dl>
+      <p role="status">Avaliação da corrida: em definição com o Owner (escala e regras pendentes).</p>
+    </section>
   );
 }

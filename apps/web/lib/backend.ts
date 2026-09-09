@@ -24,6 +24,7 @@ import { SupabasePaymentStore } from '@movo/brasil/src/infrastructure/supabase/p
 import { SupabaseDriverProfileRepository, SupabasePassengerProfileRepository, SupabaseVehicleRepository } from '@movo/brasil/src/infrastructure/supabase/onboarding.js';
 import { SupabaseUserRepository } from '@movo/brasil/src/infrastructure/supabase/repositories.js';
 import { ConversationService } from '@movo/brasil/src/application/conversation-service.js';
+import type { PaymentIntent } from '@movo/brasil/src/domain/payment.js';
 import { FakeChannelSender, NotificationService } from '@movo/brasil/src/application/notification-service.js';
 import type { NotificationStore } from '@movo/brasil/src/application/notification-service.js';
 import { renderTemplate } from '@movo/brasil/src/domain/notification.js';
@@ -136,6 +137,7 @@ export interface Backend {
   chat: ConversationService | null;
   notifications: NotificationService | null;
   inbox: NotificationStore | null;
+  paymentIntentsForRide(rideId: string): Promise<PaymentIntent[]>;
   audits: InMemoryAuditEventRepository | null;
   users: InMemoryUserRepository | SupabaseUserRepository | null;
   platformActor: ActorContext;
@@ -162,6 +164,7 @@ export async function getBackend(): Promise<Backend> {
       chat: null,
       notifications: null,
       inbox: null,
+      paymentIntentsForRide: (rideId: string) => payments.findIntentsByRide(rideId),
       audits,
       users: new SupabaseUserRepository(db),
       platformActor,
@@ -222,6 +225,7 @@ export async function getBackend(): Promise<Backend> {
     chat,
     notifications: notificationService,
     inbox: stores.notifications,
+    paymentIntentsForRide: (rideId: string) => payments.findIntentsByRide(rideId),
     audits: stores.audits,
     users: stores.users,
     platformActor,

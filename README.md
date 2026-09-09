@@ -155,3 +155,9 @@ Chat da corrida (participantes + suporte, dedupe, denúncia), catálogo
 de notificações por evento com retry/fallback, inbox in-app, eventos
 do orquestrador gerando notificações reais no demo.
 Rastreabilidade: `docs/TRACEABILITY-FASE-18.md`.
+
+## Fase 19 — Recibo pós-corrida (26-9)
+
+Recibo determinístico (tarifa, split 80/17/3, pagamento) na corrida
+concluída. Avaliação sem contrato: UNSPECIFIED-008, sem código.
+Rastreabilidade: `docs/TRACEABILITY-FASE-19.md`.
