@@ -29,6 +29,7 @@ export interface PaymentStore {
   save(intent: PaymentIntent): Promise<void>;
   findById(id: string): Promise<PaymentIntent | null>;
   findByIdempotencyKey(key: string): Promise<PaymentIntent | null>;
+  findByRideId(rideId: string): Promise<PaymentIntent[]>;
 }
 
 export interface LedgerStore {
@@ -120,5 +121,9 @@ export class PaymentService {
     const reversal = compensate(entry, `${entry.id}:reversal`, this.clock.now());
     await this.ledger.append(reversal);
     return reversal;
+  }
+
+  async findIntentsByRide(rideId: string): Promise<PaymentIntent[]> {
+    return this.payments.findByRideId(rideId);
   }
 }

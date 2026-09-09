@@ -20,6 +20,10 @@ export class InMemoryPaymentStore implements PaymentStore {
     }
     return null;
   }
+
+  async findByRideId(rideId: string): Promise<PaymentIntent[]> {
+    return [...this.byId.values()].filter((intent) => intent.rideId === rideId);
+  }
 }
 
 export class InMemoryLedgerStore implements LedgerStore {

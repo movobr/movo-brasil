@@ -51,6 +51,12 @@ export interface RideInit {
   tenantId: string;
   passengerId: string;
   serviceTypeId: string;
+  pickupLat: number;
+  pickupLng: number;
+  dropoffLat: number;
+  dropoffLng: number;
+  quotedMinor: number;
+  currency: string;
   now: Date;
 }
 
@@ -59,6 +65,12 @@ export class Ride {
   readonly tenantId: string;
   readonly passengerId: string;
   readonly serviceTypeId: string;
+  readonly pickupLat: number;
+  readonly pickupLng: number;
+  readonly dropoffLat: number;
+  readonly dropoffLng: number;
+  readonly quotedMinor: number;
+  readonly currency: string;
   driverId: string | null = null;
   status: RideStatus = 'REQUESTED';
   readonly history: StatusChange[] = [];
@@ -73,6 +85,12 @@ export class Ride {
     this.tenantId = init.tenantId;
     this.passengerId = init.passengerId;
     this.serviceTypeId = init.serviceTypeId;
+    this.pickupLat = init.pickupLat;
+    this.pickupLng = init.pickupLng;
+    this.dropoffLat = init.dropoffLat;
+    this.dropoffLng = init.dropoffLng;
+    this.quotedMinor = init.quotedMinor;
+    this.currency = init.currency;
     this.requestedAt = init.now;
     this.history.push({ from: 'REQUESTED', to: 'REQUESTED', trigger: 'passenger-request', at: init.now });
   }
@@ -80,6 +98,9 @@ export class Ride {
   static request(init: RideInit): Ride {
     if (init.id.trim() === '' || init.tenantId.trim() === '' || init.passengerId.trim() === '') {
       throw new DomainError('VALIDATION_FAILED', 'Ride requires id, tenantId and passengerId.');
+    }
+    if (!Number.isInteger(init.quotedMinor) || init.quotedMinor < 0) {
+      throw new DomainError('VALIDATION_FAILED', 'Ride quote must be non-negative integer minor units.');
     }
     return new Ride(init);
   }

@@ -1,11 +1,13 @@
 import { Tenant } from '../../domain/tenant.js';
 import { User } from '../../domain/user.js';
 import { AuditEvent } from '../../domain/audit.js';
+import { Ride } from '../../domain/ride.js';
 import type {
   TenantRepository,
   UserRepository,
   AuditEventRepository,
 } from '../../application/repositories.js';
+import type { RideRepository } from '../../application/ride-repositories.js';
 
 /** Adaptadores em memória — usados pelos testes offline (38). */
 
@@ -71,5 +73,25 @@ export class InMemoryAuditEventRepository implements AuditEventRepository {
 
   async listByTenant(tenantId: string): Promise<AuditEvent[]> {
     return this.events.filter((event) => event.tenantScope === tenantId);
+  }
+}
+
+export class InMemoryRideRepository implements RideRepository {
+  private readonly byId = new Map<string, Ride>();
+
+  async save(ride: Ride): Promise<void> {
+    this.byId.set(ride.id, ride);
+  }
+
+  async findById(id: string): Promise<Ride | null> {
+    return this.byId.get(id) ?? null;
+  }
+
+  async listByTenant(tenantId: string): Promise<Ride[]> {
+    return [...this.byId.values()].filter((ride) => ride.tenantId === tenantId);
+  }
+
+  async listByDriver(driverId: string): Promise<Ride[]> {
+    return [...this.byId.values()].filter((ride) => ride.driverId === driverId);
   }
 }

@@ -5,7 +5,19 @@ import { Ride } from '../../src/domain/ride.js';
 const NOW = new Date('2026-09-09T12:00:00.000Z');
 
 function requested(): Ride {
-  return Ride.request({ id: 'ride-1', tenantId: 'tenant-a', passengerId: 'pax-1', serviceTypeId: 'car', now: NOW });
+  return Ride.request({
+    id: 'ride-1',
+    tenantId: 'tenant-a',
+    passengerId: 'pax-1',
+    serviceTypeId: 'car',
+    pickupLat: -23.5505,
+    pickupLng: -46.6333,
+    dropoffLat: -23.5645,
+    dropoffLng: -46.6433,
+    quotedMinor: 2800,
+    currency: 'BRL',
+    now: NOW,
+  });
 }
 
 function toArrived(): Ride {

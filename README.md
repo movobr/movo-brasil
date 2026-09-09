@@ -74,3 +74,10 @@ Pix pré-pago (10 min), idempotência fim-a-fim, webhook Mercado Pago com
 assinatura oficial, split 80/17/3 exato, settlement ledger-driven,
 SaaS separado de corridas. Tabela SQL de ledger adiada (fora do 11).
 Rastreabilidade: `docs/TRACEABILITY-FASE-6.md`.
+
+## Fase 7 — Orquestração fim-a-fim (42, REQ-RIDE-001/REQ-PAY-001)
+
+RideOrchestrator: request→pricing→ride→pagamento→dispatch→conclusão, gate
+pré-pago, bloqueio de tenant não-ACTIVE, eventos versionados (17), rota via
+adapter (16), migration 0002 (rides/payments + RLS).
+Rastreabilidade: `docs/TRACEABILITY-FASE-7.md`.
