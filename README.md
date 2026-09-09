@@ -87,3 +87,9 @@ Rastreabilidade: `docs/TRACEABILITY-FASE-7.md`.
 Verificação fechada (APPLICATION→APPROVED), disponibilidade, perfis e
 veículos, gate de aceite para não verificados, migration 0003 + RLS.
 Rastreabilidade: `docs/TRACEABILITY-FASE-8.md`.
+
+## Fase 9 — SaaS billing (08, DEC-SaaS, 22/23)
+
+Planos Launch/Growth/Enterprise, trial 14 dias, grace 7 dias, cobrança no
+ledger `saas` separado, limites por plano, operações auditadas.
+Rastreabilidade: `docs/TRACEABILITY-FASE-9.md`.
