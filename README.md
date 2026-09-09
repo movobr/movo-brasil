@@ -161,3 +161,9 @@ Rastreabilidade: `docs/TRACEABILITY-FASE-18.md`.
 Recibo determinístico (tarifa, split 80/17/3, pagamento) na corrida
 concluída. Avaliação sem contrato: UNSPECIFIED-008, sem código.
 Rastreabilidade: `docs/TRACEABILITY-FASE-19.md`.
+
+## Fase 20 — Política de localização (16)
+
+Freshness 20/60 s, prune do pool fiado no dispatch, geofence com 100 m
+de tolerância. Cadência, retenção e polígonos: infra/config futuras.
+Rastreabilidade: `docs/TRACEABILITY-FASE-20.md`.

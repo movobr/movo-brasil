@@ -1,4 +1,5 @@
 import { DomainError } from './errors.js';
+import { MATCHING_STALE_SECONDS, POOL_EXPIRY_SECONDS } from './driver-location.js';
 
 /**
  * Dispatch/matching V1 — 13-DISPATCH-MATCHING + DEC-DISP-001..008.
@@ -10,7 +11,10 @@ import { DomainError } from './errors.js';
 
 export const OFFER_TIMEOUT_SECONDS = 12;
 export const MAX_OFFERS_PER_WAVE = 5;
-export const STALE_LOCATION_SECONDS = 20;
+/** 16: mesma fonte da verdade de driver-location.ts (20 s). */
+export const STALE_LOCATION_SECONDS = MATCHING_STALE_SECONDS;
+/** 16: >60 s remove do pool antes das ondas. */
+export const POOL_EXPIRY_AGE_SECONDS = POOL_EXPIRY_SECONDS;
 
 export interface DispatchWave {
   readonly wave: number;
@@ -61,6 +65,14 @@ export function isEligible(candidate: DriverCandidate, request: DispatchRequest)
     candidate.locationAgeSeconds <= STALE_LOCATION_SECONDS &&
     !candidate.assignedToActiveRide
   );
+}
+
+/**
+ * 16: remove do pool candidatos com localização expirada (>60 s) antes
+ * das ondas. Os restantes passam pela elegibilidade normal (20 s).
+ */
+export function removeExpiredCandidates(candidates: ReadonlyArray<DriverCandidate>): DriverCandidate[] {
+  return candidates.filter((candidate) => candidate.locationAgeSeconds <= POOL_EXPIRY_AGE_SECONDS);
 }
 
 /** Ranking lexicográfico (13 §Ranking order). Não muta a entrada. */
