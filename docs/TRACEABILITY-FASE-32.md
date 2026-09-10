@@ -18,8 +18,20 @@ Test users) OU envia webhook secret + chaves de produção.
 
 ## Revisão via SDK oficial (mercadopago 3.6.0, PyPI)
 - `users/me` → 200 (MOVO BRASIL); `payment_methods.list_all` → 200,
-  20 meios. SDK íntegro e pronto para uso futuro.
+  20 meios. SDK íntegro para leitura.
 - `payment().create` Pix R$1,00 com `RequestOptions` (idempotência) →
-  mesmo 403 `Payer email forbidden`. Barreira confirmada como política
-  da conta (test user), não do cliente HTTP. Prova em /tmp (fora do
-  repo, descartável).
+  403 `Payer email forbidden` (mesma barreira do REST).
+
+## Cartão TESTE (dois PANs enviados pelo Owner)
+- PAN 1 (5480…) e PAN 2 (4235…) via SDK `card_token().create` → 400 G001.
+- PAN 2 via REST `POST /v1/card_tokens?public_key=` → **token criado**
+  (`ac0aa78b…`, first_six 423564). Cartão válido; o SDK 3.x monta a
+  chamada de tokenização de outro jeito (detalhe do SDK, sem valor
+  investigar agora — escrita segue via REST).
+- Pagamento com o token → mesmo 403 `Payer email forbidden`.
+- Arquivos com PAN removidos de /tmp após o teste.
+
+## Veredito
+Tudo que depende só das credenciais funciona (auth, catálogo, Pix
+leitura, tokenização). Tudo que cria DINHEIRO (Pix ou cartão) exige
+test user da aplicação — barreira de política, não de código.
