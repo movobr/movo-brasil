@@ -206,3 +206,10 @@ Fecha UNSPECIFIED-007: tabela aprovada vira fonte única congelada no
 backend; demo-auth reexporta (sem dupla verdade). `ride.rate` só para
 quem avalia. Mudanças exigem nova decisão (46).
 Rastreabilidade: `docs/TRACEABILITY-FASE-27.md`.
+
+## Fase 28 — Repositório público (Owner DECIDED)
+
+https://github.com/movobr/movo-brasil — monorepo publicado (27 commits
+via subtree split), CI `movo-ci` rodando no push. Scan pré-push sem
+segredos reais. Falta: reviewers no environment `production`.
+Rastreabilidade: `docs/TRACEABILITY-FASE-28.md`.
