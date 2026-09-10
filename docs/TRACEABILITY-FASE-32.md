@@ -15,3 +15,11 @@ Decisão: NÃO fiar MercadoPagoProvider incompleto no backend vivo.
 DemoPaymentProvider continua; envs TEST guardadas no .env local
 (não commitado). Para destravar: Owner cria test user (Developers →
 Test users) OU envia webhook secret + chaves de produção.
+
+## Revisão via SDK oficial (mercadopago 3.6.0, PyPI)
+- `users/me` → 200 (MOVO BRASIL); `payment_methods.list_all` → 200,
+  20 meios. SDK íntegro e pronto para uso futuro.
+- `payment().create` Pix R$1,00 com `RequestOptions` (idempotência) →
+  mesmo 403 `Payer email forbidden`. Barreira confirmada como política
+  da conta (test user), não do cliente HTTP. Prova em /tmp (fora do
+  repo, descartável).
