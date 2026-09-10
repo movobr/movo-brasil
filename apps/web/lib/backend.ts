@@ -44,6 +44,16 @@ import { FakeMapsProvider, DemoPaymentProvider } from './demo-fakes.js';
  * com UNSPECIFIED-002); cada página resolve só o branding do tenant.
  */
 /**
+ * Trava de modo demo (39, E2E): com MOVO_E2E_DEMO=1 fora de produção,
+ * força o caminho demo mesmo havendo credenciais no .env local.
+ * Em produção a trava é ignorada.
+ */
+export function isLiveMode(env: NodeJS.ProcessEnv = process.env): boolean {
+  if (env['MOVO_E2E_DEMO'] === '1' && env['NODE_ENV'] !== 'production') return false;
+  return env['SUPABASE_URL'] !== undefined && env['SUPABASE_SERVICE_ROLE_KEY'] !== undefined;
+}
+
+/**
  * Seleção do provedor de mapas (37): com GOOGLE_MAPS_API_KEY, o adapter
  * vivo (Geocoding + Routes v2); sem ela, o fake determinístico do demo.
  * Exportada para teste sem rede.
@@ -136,6 +146,12 @@ async function seedDemo(stores: DemoStores): Promise<void> {
         email: `operator@${slug}.example`, phone: null, name: `Operador ${slug}`, status: 'ACTIVE', now: NOW,
       }),
     );
+    await stores.users.save(
+      User.create({
+        id: randomUUID(), tenantId: tenant.id, roleScope: 'TENANT', role: 'PASSENGER',
+        email: `passenger@${slug}.example`, phone: null, name: `Passageiro ${slug}`, status: 'ACTIVE', now: NOW,
+      }),
+    );
     const profile = DriverProfile.register({ id: randomUUID(), tenantId: tenant.id, userId: driverUserId, status: 'ACTIVE', now: NOW });
     profile.transitionVerification('DOCUMENT_REVIEW', NOW);
     profile.transitionVerification('VERIFICATION', NOW);
@@ -173,7 +189,7 @@ export async function getBackend(): Promise<Backend> {
   const platformActor: ActorContext = {
     userId: 'platform-admin', tenantId: null, permissions: PLATFORM_PERMISSIONS, correlationId: randomUUID(),
   };
-  const useLive = process.env['SUPABASE_URL'] !== undefined && process.env['SUPABASE_SERVICE_ROLE_KEY'] !== undefined;
+  const useLive = isLiveMode();
   // Demo sem Supabase: fake determinístico (custo zero). Caminho vivo:
   // adapter Google com a key do servidor (nunca exposta ao client).
   const maps: MapsProvider = useLive ? selectMapsProvider() : new FakeMapsProvider();

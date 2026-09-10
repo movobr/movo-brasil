@@ -6,11 +6,12 @@ import { SupabaseAuthProvider } from '@movo/brasil/src/infrastructure/supabase/a
 import { SessionService } from '@movo/brasil/src/application/session-service.js';
 import { createPublicSupabaseClient } from '@movo/brasil/src/infrastructure/supabase/client.js';
 import type { UserRepository } from '@movo/brasil/src/application/repositories.js';
-import { getBackend } from '../../lib/backend.js';
+import { getBackend, isLiveMode } from '../../lib/backend.js';
 import { SESSION_COOKIE, sealSession } from '../../lib/session.js';
 import { DemoAuthProvider, establishDemoActor } from '../../lib/demo-auth.js';
 
 function useLive(): boolean {
+  if (!isLiveMode()) return false;
   return (
     process.env['SUPABASE_URL'] !== undefined &&
     process.env['SUPABASE_SERVICE_ROLE_KEY'] !== undefined &&
