@@ -3,7 +3,7 @@ import { IdempotencyRegistry } from '../domain/idempotency.js';
 import { compensate, postSettlement, splitFare, type LedgerEntry, type SettlementInput } from '../domain/ledger.js';
 import { PaymentIntent, type ProviderPaymentEvent, type WebhookOutcome } from '../domain/payment.js';
 
-/** Porta do provedor de pagamento (15). Implementação viva: Stripe (Owner DECIDED). */
+/** Porta do provedor de pagamento (15). Implementação viva nas fases de infra com credenciais. */
 export interface PixOrderInput {
   readonly tenantId: string;
   readonly rideId: string;
@@ -14,11 +14,6 @@ export interface PixOrderInput {
 export interface PixOrder {
   readonly providerReference: string;
   readonly qrData: string;
-  /**
-   * Stripe: client_secret do PaymentIntent para o client confirmar e
-   * extrair o BR Code do next_action. Provedores com QR direto usam ''.
-   */
-  readonly clientSecret: string | null;
 }
 
 export interface PaymentProvider {

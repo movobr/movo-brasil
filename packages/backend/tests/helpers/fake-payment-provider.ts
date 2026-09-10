@@ -11,7 +11,7 @@ export class FakePaymentProvider implements PaymentProvider {
 
   async createPixOrder(input: PixOrderInput): Promise<PixOrder> {
     this.orders.push(input);
-    return { providerReference: `mp-${input.rideId}`, qrData: `qr:${input.rideId}`, clientSecret: null };
+    return { providerReference: `mp-${input.rideId}`, qrData: `qr:${input.rideId}` };
   }
 
   verifyWebhookSignature(): boolean {
