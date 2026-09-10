@@ -22,6 +22,9 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      # npm/cli#4828: lock gerado no Windows pode omitir o binário nativo
+      # do rollup p/ Linux; reinstala o opcional da plataforma do runner.
+      - run: npm install --no-save @rollup/rollup-linux-x64-gnu
       - run: npm run typecheck
       - run: npm run backend:lint
       - run: npm test
@@ -53,6 +56,10 @@ jobs:
         env:
           PGPASSWORD: postgres
         run: psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f packages/backend/db/migrations/0003_onboarding.sql
+      - name: Aplica 0004 em sequência
+        env:
+          PGPASSWORD: postgres
+        run: psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f packages/backend/db/migrations/0004_tenant_branding.sql
       - name: Confere tabelas e RLS
         env:
           PGPASSWORD: postgres
