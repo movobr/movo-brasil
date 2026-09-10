@@ -93,7 +93,7 @@ jobs:
       # Sem VPS configurado (sem secrets): smoke local da imagem.
       # Com VPS: push + deploy staging + smoke no domínio (37/DEC-OPS).
       - name: Smoke local (sem VPS)
-        if: secrets.VPS_HOST == ''
+        if: ${{ !vars.VPS_HOST }}
         run: |
           docker run -d --name movo-smoke -p 3100:3000 -e SESSION_SECRET=ci-smoke -e ALLOW_DEMO_AUTH=true ${{ vars.REGISTRY }}/movo-web:${{ github.sha }}
           sleep 12
@@ -101,10 +101,10 @@ jobs:
           curl -fsS -o /dev/null http://127.0.0.1:3100/login
           docker rm -f movo-smoke
       - name: Push da imagem (com VPS)
-        if: secrets.VPS_HOST != ''
+        if: vars.VPS_HOST
         run: docker push ${{ vars.REGISTRY }}/movo-web:${{ github.sha }}
       - name: Deploy staging via SSH
-        if: secrets.VPS_HOST != ''
+        if: vars.VPS_HOST
         uses: appleboy/ssh-action@v1.0.3
         env:
           TAG: ${{ github.sha }}
@@ -116,14 +116,14 @@ jobs:
           script: |
             cd /opt/movo && TAG=$TAG docker stack deploy -c deploy/stack.staging.yml movo-staging
       - name: Smoke no health check
-        if: secrets.VPS_HOST != ''
+        if: vars.VPS_HOST
         run: sleep 20 && curl -fsS https://${{ vars.STAGING_DOMAIN }}/api/health | grep -q healthy
 
   gate-7-8-production:
     name: "Gates 7-8: produção com aprovação manual e rollback"
     runs-on: ubuntu-latest
     needs: [gate-5-staging]
-    if: github.ref == 'refs/heads/main' && secrets.VPS_HOST != ''
+    if: github.ref == 'refs/heads/main' && vars.VPS_HOST
     environment:
       name: production
     steps:
