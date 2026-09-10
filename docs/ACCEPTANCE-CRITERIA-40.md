@@ -11,7 +11,7 @@ item abaixo indica STATUS, GAPS (se houver) e RISCO.
 | multiple tenants coexist | ✅ Concluído | — | Nenhum. 33 skills + monorepo + 3 tenants demo (A/B). |
 | tenant data is isolated | ✅ Concluído | — | Deny-by-default por tenant; repositórios scopados. |
 | platform admin can govern tenants | ✅ Concluído | — | `platformActor` com todas as permissões; UI `/admin/tenants`. |
-| tenants can manage their configuration within permissions | ⚠️ Parcial | UI de configuração de parâmetros por tenant ainda não exposta; `branding.manage` e `tenant.configuration` funcionam via API; front ainda limitado. | Médio —Owner pode decidir expor mais controles. |
+| tenants can manage their configuration within permissions | ✅ Concluído (Fase 24) | Demais grupos de config seguem UNSPECIFIED-002; upload binário de assets na ativação. | Baixo |
 | no tenant-specific source fork is required | ✅ Concluído | — | Monorepo único + `packages/backend/src` compartilhado; cada tenant tem seu próprio dados, não código. |
 
 ## White-label
@@ -51,8 +51,8 @@ item abaixo indica STATUS, GAPS (se houver) e RISCO.
 ## Resumo Geral
 
 - **Total de bullets**: 26
-- **✅ Concluídos**: 22
-- **⚠️ Parciais**: 3 (3 itens com GAPS moderados)
+- **✅ Concluídos**: 23 (Fase 24 fechou GAP 1)
+- **⚠️ Parciais**: 2
 - **❌ Pendentes**: 1 (pagamento webhook vivo)
 
 ### GAPS DETALHADOS

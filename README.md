@@ -179,4 +179,11 @@ Rastreabilidade: `docs/TRACEABILITY-FASE-21.md`.
 
 Tracking com aviso de stale, recibo real, seleção Pix/cartão sem
 processar no cliente, histórico com total. Busca/request: futuros.
-Rastreabilidade: `docs/TRACEABILITY-FASE-22.md`.
+Rastreabilidade: `docs/ACCEPTANCE-CRITERIA-40.md`.
+
+## Fase 24 — Branding gerenciável (06/07, GAP 1 do aceite)
+
+Tenant admin com `branding.manage` edita marca do próprio tenant
+(nome, logo https, cor) com validação, auditoria e fallback seguro.
+Persistência em `tenant_branding` (migration 0004).
+Rastreabilidade: `docs/TRACEABILITY-FASE-24.md`.

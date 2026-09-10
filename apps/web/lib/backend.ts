@@ -141,6 +141,12 @@ export interface Backend {
   audits: InMemoryAuditEventRepository | null;
   users: InMemoryUserRepository | SupabaseUserRepository | null;
   platformActor: ActorContext;
+  /**
+   * Branding efetivo (06 Fallback): persistido > fixture demo > null.
+   * Demo continua fixture neutra de apresentação; produção usa o
+   * branding persistido (store de config chega com UNSPECIFIED-002).
+   */
+  brandingForTenant(tenantId: string, slug: string): Promise<BrandingConfig | null>;
   demoBrandingForSlug(slug: string): BrandingConfig | null;
 }
 
@@ -168,6 +174,8 @@ export async function getBackend(): Promise<Backend> {
       audits,
       users: new SupabaseUserRepository(db),
       platformActor,
+      brandingForTenant: async (tenantId: string) =>
+        new SupabaseTenantRepository(db).findBranding(tenantId).catch(() => null),
       demoBrandingForSlug: () => null,
     };
   }
@@ -229,6 +237,8 @@ export async function getBackend(): Promise<Backend> {
     audits: stores.audits,
     users: stores.users,
     platformActor,
+    brandingForTenant: async (tenantId: string, slug: string) =>
+      (await stores.tenants.findBranding(tenantId).catch(() => null)) ?? DEMO_BRANDING[slug] ?? null,
     demoBrandingForSlug: (slug: string) => DEMO_BRANDING[slug] ?? null,
   };
 }

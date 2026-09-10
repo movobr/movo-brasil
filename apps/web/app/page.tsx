@@ -19,7 +19,7 @@ export default async function Home({
       </DataStates>
     );
   }
-  const branding = backend.demoBrandingForSlug(current.slug);
+  const branding = await backend.brandingForTenant(current.id, current.slug);
   return (
     <div style={themeStyleFor(branding)}>
       <h1>{branding?.commercialName ?? 'MOVO Brasil'}</h1>

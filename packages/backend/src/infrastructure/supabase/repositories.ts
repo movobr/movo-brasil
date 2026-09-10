@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { DomainError } from '../../domain/errors.js';
+import type { BrandingConfig } from '../../domain/branding.js';
 import { Tenant, type TenantStatus } from '../../domain/tenant.js';
 import { User, type Role, type UserScope } from '../../domain/user.js';
 import { AuditEvent, type AuditResult } from '../../domain/audit.js';
@@ -129,6 +130,30 @@ export class SupabaseTenantRepository implements TenantRepository {
     const { data, error } = await this.db.from('tenants').select('*');
     throwIfError(error, 'Failed to list tenants');
     return ((data ?? []) as TenantRow[]).map(toTenant);
+  }
+
+  /**
+   * Branding persistido (06/07). Supabase sem coluna dedicada: tabela
+   * própria tenant_branding (migration 0004). Sem tabela = null (demo
+   * fixture continua resolvendo; produção exige a migration aplicada).
+   */
+  async saveBranding(tenantId: string, branding: BrandingConfig): Promise<void> {
+    const { error } = await this.db.from('tenant_branding').upsert(
+      {
+        tenant_id: tenantId,
+        branding,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: 'tenant_id' },
+    );
+    throwIfError(error, 'Failed to save tenant branding');
+  }
+
+  async findBranding(tenantId: string): Promise<BrandingConfig | null> {
+    const { data, error } = await this.db.from('tenant_branding').select('branding').eq('tenant_id', tenantId).maybeSingle();
+    throwIfError(error, 'Failed to load tenant branding');
+    if (data === null) return null;
+    return (data as { branding: BrandingConfig }).branding;
   }
 }
 

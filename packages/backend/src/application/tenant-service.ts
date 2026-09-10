@@ -3,6 +3,7 @@ import { DomainError } from '../domain/errors.js';
 import { Tenant, type ActivationChecklist } from '../domain/tenant.js';
 import { AuditEvent } from '../domain/audit.js';
 import { authorize, type ActorContext } from '../domain/authorization.js';
+import { validateBranding, type BrandingConfig } from '../domain/branding.js';
 import type {
   TenantRepository,
   AuditEventRepository,
@@ -116,6 +117,31 @@ export class TenantService {
 
   async getTenant(actor: ActorContext, tenantId: string): Promise<Tenant> {
     return this.requireTenant(actor, tenantId, PERMISSIONS.tenantRead);
+  }
+
+  /**
+   * Branding do tenant (06/07): edição por `branding.manage` com escopo do
+   * tenant (deny cross-tenant via authorize); validação estrutural antes
+   * de persistir; inválido nunca quebra UI (resolveTheme faz fallback).
+   * Auditoria em toda mutação (32). Asset binário (tipo/dimensão/conteúdo)
+   * continua na ativação de assets, fora deste escopo.
+   */
+  async getBranding(actor: ActorContext, tenantId: string): Promise<BrandingConfig | null> {
+    authorize(actor, PERMISSIONS.brandingManage, tenantId);
+    return this.tenants.findBranding(tenantId);
+  }
+
+  async updateBranding(actor: ActorContext, tenantId: string, branding: BrandingConfig): Promise<BrandingConfig> {
+    await this.requireTenant(actor, tenantId, PERMISSIONS.brandingManage);
+    const issues = validateBranding(branding);
+    if (issues.length > 0) {
+      throw new DomainError('VALIDATION_FAILED', `Invalid branding: ${issues.join('; ')}`, { issues });
+    }
+    await this.tenants.saveBranding(tenantId, branding);
+    await this.recordAudit(actor, tenantId, 'tenant.update_branding', 'tenant', tenantId, 'SUCCESS', {
+      commercialName: branding.commercialName ?? null,
+    });
+    return branding;
   }
 
   /** Módulo tenants do platform admin (23): somente principais de plataforma. */

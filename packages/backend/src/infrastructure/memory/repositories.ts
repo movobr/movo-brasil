@@ -1,4 +1,5 @@
 import { Tenant } from '../../domain/tenant.js';
+import type { BrandingConfig } from '../../domain/branding.js';
 import { User } from '../../domain/user.js';
 import { AuditEvent } from '../../domain/audit.js';
 import { Ride } from '../../domain/ride.js';
@@ -13,6 +14,7 @@ import type { RideRepository } from '../../application/ride-repositories.js';
 
 export class InMemoryTenantRepository implements TenantRepository {
   private readonly byId = new Map<string, Tenant>();
+  private readonly brandingByTenant = new Map<string, BrandingConfig>();
 
   async save(tenant: Tenant): Promise<void> {
     this.byId.set(tenant.id, tenant);
@@ -31,6 +33,14 @@ export class InMemoryTenantRepository implements TenantRepository {
 
   async listAll(): Promise<Tenant[]> {
     return [...this.byId.values()];
+  }
+
+  async saveBranding(tenantId: string, branding: BrandingConfig): Promise<void> {
+    this.brandingByTenant.set(tenantId, { ...branding });
+  }
+
+  async findBranding(tenantId: string): Promise<BrandingConfig | null> {
+    return this.brandingByTenant.get(tenantId) ?? null;
   }
 }
 

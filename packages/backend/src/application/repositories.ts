@@ -1,4 +1,5 @@
 import type { Tenant } from '../domain/tenant.js';
+import type { BrandingConfig } from '../domain/branding.js';
 import type { User } from '../domain/user.js';
 import type { AuditEvent } from '../domain/audit.js';
 
@@ -9,6 +10,8 @@ export interface TenantRepository {
   findBySlug(slug: string): Promise<Tenant | null>;
   /** Uso restrito a principais de plataforma; isolamento aplicado no serviço. */
   listAll(): Promise<Tenant[]>;
+  saveBranding(tenantId: string, branding: BrandingConfig): Promise<void>;
+  findBranding(tenantId: string): Promise<BrandingConfig | null>;
 }
 
 export interface UserRepository {
