@@ -58,6 +58,9 @@ export interface RideInit {
   quotedMinor: number;
   currency: string;
   now: Date;
+  /** Rota calculada no request (38): nula em corridas legadas. */
+  routeDistanceMeters?: number | null;
+  routeDurationSeconds?: number | null;
 }
 
 export class Ride {
@@ -74,6 +77,8 @@ export class Ride {
   driverId: string | null = null;
   status: RideStatus = 'REQUESTED';
   readonly history: StatusChange[] = [];
+  readonly routeDistanceMeters: number | null;
+  readonly routeDurationSeconds: number | null;
   requestedAt: Date;
   acceptedAt: Date | null = null;
   startedAt: Date | null = null;
@@ -91,6 +96,8 @@ export class Ride {
     this.dropoffLng = init.dropoffLng;
     this.quotedMinor = init.quotedMinor;
     this.currency = init.currency;
+    this.routeDistanceMeters = init.routeDistanceMeters ?? null;
+    this.routeDurationSeconds = init.routeDurationSeconds ?? null;
     this.requestedAt = init.now;
     this.history.push({ from: 'REQUESTED', to: 'REQUESTED', trigger: 'passenger-request', at: init.now });
   }
@@ -101,6 +108,11 @@ export class Ride {
     }
     if (!Number.isInteger(init.quotedMinor) || init.quotedMinor < 0) {
       throw new DomainError('VALIDATION_FAILED', 'Ride quote must be non-negative integer minor units.');
+    }
+    for (const [name, value] of [['routeDistanceMeters', init.routeDistanceMeters], ['routeDurationSeconds', init.routeDurationSeconds]] as const) {
+      if (value !== undefined && value !== null && (!Number.isInteger(value) || value < 0)) {
+        throw new DomainError('VALIDATION_FAILED', `Ride ${name} must be a non-negative integer or null.`);
+      }
     }
     return new Ride(init);
   }

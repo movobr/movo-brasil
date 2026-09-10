@@ -102,6 +102,8 @@ export class RideOrchestrator {
       dropoffLng: route.dropoff.lng,
       quotedMinor: quote.total.amountMinor,
       currency: quote.total.currency,
+      routeDistanceMeters: route.distanceMeters,
+      routeDurationSeconds: route.durationSeconds,
       now: this.clock.now(),
     });
     await this.rides.save(ride);

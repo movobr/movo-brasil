@@ -17,6 +17,8 @@ interface RideRow {
   dropoff_lng: number;
   quoted_minor: number;
   final_minor: number | null;
+  route_distance_meters: number | null;
+  route_duration_seconds: number | null;
   currency: string;
   requested_at: string;
   accepted_at: string | null;
@@ -39,6 +41,8 @@ function toRide(row: RideRow): Ride {
     dropoffLng: row.dropoff_lng,
     quotedMinor: row.quoted_minor,
     currency: row.currency,
+    routeDistanceMeters: row.route_distance_meters,
+    routeDurationSeconds: row.route_duration_seconds,
     now: new Date(row.requested_at),
   });
   if (row.driver_id !== null) ride.driverId = row.driver_id;
@@ -68,12 +72,15 @@ export class SupabaseRideRepository implements RideRepository {
         dropoff_lat: ride.dropoffLat,
         dropoff_lng: ride.dropoffLng,
         quoted_minor: ride.quotedMinor,
+        route_distance_meters: ride.routeDistanceMeters,
+        route_duration_seconds: ride.routeDurationSeconds,
         currency: ride.currency,
         requested_at: ride.requestedAt.toISOString(),
         accepted_at: ride.acceptedAt?.toISOString() ?? null,
         started_at: ride.startedAt?.toISOString() ?? null,
         completed_at: ride.completedAt?.toISOString() ?? null,
         cancelled_at: ride.cancelledAt?.toISOString() ?? null,
+        created_at: ride.requestedAt.toISOString(),
         updated_at: now,
       },
       { onConflict: 'id' },

@@ -59,6 +59,8 @@ describe('ride orchestration end-to-end (42)', () => {
     expect(quote.total.amountMinor).toBe(2800);
     expect(paymentId).not.toBeNull();
     expect(ride.status).toBe('REQUESTED');
+    expect(ride.routeDistanceMeters).toBe(10000);
+    expect(ride.routeDurationSeconds).toBe(1200);
 
     await expect(orchestrator.startMatching(operator, ride.id)).rejects.toMatchObject({ code: 'UNAUTHORIZED' });
     const intents = await payments.findIntentsByRide(ride.id);

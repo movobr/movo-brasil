@@ -67,6 +67,14 @@ export default async function RideStatusPage({
           Estado: <span className="badge">{ride.status}</span>
         </p>
         <p>Tarifa cotada: R$ {(ride.quotedMinor / 100).toFixed(2).replace('.', ',')}</p>
+        {ride.routeDistanceMeters !== null ? (
+          <p>
+            Rota: {(ride.routeDistanceMeters / 1000).toFixed(1).replace('.', ',')} km
+            {ride.routeDurationSeconds !== null
+              ? ` · cerca de ${Math.round(ride.routeDurationSeconds / 60)} min`
+              : null}
+          </p>
+        ) : null}
         {driverName !== null ? <p>Motorista: {driverName}</p> : null}
       </section>
       {ride.status === 'REQUESTED' ? (
