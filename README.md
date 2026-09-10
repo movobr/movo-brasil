@@ -187,3 +187,9 @@ Tenant admin com `branding.manage` edita marca do próprio tenant
 (nome, logo https, cor) com validação, auditoria e fallback seguro.
 Persistência em `tenant_branding` (migration 0004).
 Rastreabilidade: `docs/TRACEABILITY-FASE-24.md`.
+
+## Fase 25 — Acessibilidade crítica (40-UX, GAP 3 do aceite)
+
+axe-core wcag2a/aa sobre login, cotação e marca do tenant: 0 violações.
+Smoke das 8 rotas (Fase 23) continua verde.
+Rastreabilidade: `docs/TRACEABILITY-FASE-25.md`.

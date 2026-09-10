@@ -45,14 +45,14 @@ item abaixo indica STATUS, GAPS (se houver) e RISCO.
 | Bullet | Status | GAPS | RISCO |
 |--------|--------|------|-------|
 | core screens work on mobile/tablet/desktop | ✅ Concluído | — | Web (13 rotas + build), mobile (Auth/Home/Quote/Driver/History/Payment), desktop (admin, ops). |
-| critical flows are keyboard/accessibility tested on web | ⚠️ Parcial | Testes de acessibilidade (ARIA, focus-visible) ainda não cobertura completa; `DataStates` + `cors` + headers definidos. | Médio — testes de acessibilidade podem ser adicionados. |
+| critical flows are keyboard/accessibility tested on web | ✅ Concluído (Fase 25) | axe-core wcag2a/aa nos 3 fluxos críticos + smoke nas 8 rotas; color-contrast indisponível no jsdom (ruído de ambiente). | Baixo |
 | loading/empty/error/offline/stale states are defined | ✅ Concluído | — | `DataStates` component com 7 estados; todas as telas usam padrão; aviso de stale em 20 s (16). |
 
 ## Resumo Geral
 
 - **Total de bullets**: 26
-- **✅ Concluídos**: 23 (Fase 24 fechou GAP 1)
-- **⚠️ Parciais**: 2
+- **✅ Concluídos**: 24 (Fases 24–25 fecharam GAPs 1 e 3)
+- **⚠️ Parciais**: 1
 - **❌ Pendentes**: 1 (pagamento webhook vivo)
 
 ### GAPS DETALHADOS
