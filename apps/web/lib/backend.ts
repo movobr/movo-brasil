@@ -18,6 +18,8 @@ import { DriverProfile } from '@movo/brasil/src/domain/driver-profile.js';
 import { InMemoryLedgerStore, InMemoryPaymentStore } from '@movo/brasil/src/infrastructure/memory/payments.js';
 import { InMemorySubscriptionRepository } from '@movo/brasil/src/infrastructure/memory/subscriptions.js';
 import { createSupabaseClient } from '@movo/brasil/src/infrastructure/supabase/client.js';
+import { createPublicSupabaseClient } from '@movo/brasil/src/infrastructure/supabase/client.js';
+import { SupabaseRealtimePublisher } from '@movo/brasil/src/infrastructure/realtime/supabase-realtime-publisher.js';
 import { SupabaseTenantRepository } from '@movo/brasil/src/infrastructure/supabase/repositories.js';
 import { SupabaseRideRepository } from '@movo/brasil/src/infrastructure/supabase/ride-repository.js';
 import { SupabasePaymentStore } from '@movo/brasil/src/infrastructure/supabase/payment-store.js';
@@ -165,11 +167,20 @@ export async function getBackend(): Promise<Backend> {
     const db = createSupabaseClient();
     const audits = new InMemoryAuditEventRepository();
     const payments = new PaymentService(new DemoPaymentProvider(), new SupabasePaymentStore(db), new InMemoryLedgerStore(), undefined, randomUUID);
+    // Realtime no caminho vivo (35/36): coleta local + broadcast; falha
+    // de broadcast nunca quebra a corrida (menor privilégio: publishable).
+    const events = new CollectingPublisher();
+    try {
+      const realtime = new SupabaseRealtimePublisher(createPublicSupabaseClient());
+      events.onPublish((event) => realtime.publish(event).catch(() => undefined));
+    } catch {
+      // Sem publishable configurado: segue só coletando (comportamento anterior).
+    }
     return {
       tenants: new TenantService(new SupabaseTenantRepository(db), audits),
       subscriptions: new SubscriptionService(new InMemorySubscriptionRepository(), new InMemoryLedgerStore(), audits),
       onboarding: new OnboardingService(new SupabaseDriverProfileRepository(db), new SupabasePassengerProfileRepository(db), new SupabaseVehicleRepository(db), audits),
-      orchestrator: new RideOrchestrator(new SupabaseTenantRepository(db), new SupabaseRideRepository(db), audits, new CollectingPublisher(), maps, payments),
+      orchestrator: new RideOrchestrator(new SupabaseTenantRepository(db), new SupabaseRideRepository(db), audits, events, maps, payments),
       chat: null,
       ratings: null,
       notifications: null,

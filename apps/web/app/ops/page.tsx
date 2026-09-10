@@ -3,11 +3,12 @@ import { DataStates } from '../../components/DataStates.js';
 import { getBackend } from '../../lib/backend.js';
 import { requireSession } from '../../lib/require-session.js';
 import { manualDispatchAction } from './actions.js';
+import { OpsLiveListener } from './OpsLiveListener.js';
 
 /**
  * 24-OPERATIONAL-PANEL: fila, corridas ativas, disponibilidade, alertas.
- * Sem transporte realtime nesta fase: cada seção exibe o carimbo de
- * atualização e nunca afirma atualidade além do render (24 §Realtime UX).
+ * Realtime (36) via OpsLiveListener; sem credenciais, o ouvinte exibe o
+ * aviso honesto e a página nunca afirma atualidade além do render.
  */
 export default async function OpsPage({
   searchParams,
@@ -45,8 +46,13 @@ export default async function OpsPage({
       ) : null}
       <p role="status">
         Dados atualizados em <time dateTime={renderedAt.toISOString()}>{renderedAt.toLocaleString('pt-BR')}</time>.
-        Sem realtime nesta fase: recarregue para atualizar.
       </p>
+      <OpsLiveListener
+        tenantId={tenant.id}
+        rideIds={rides.map((ride) => ride.id)}
+        supabaseUrl={process.env['NEXT_PUBLIC_SUPABASE_URL'] ?? null}
+        publishableKey={process.env['NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY'] ?? null}
+      />
       <section className="card" aria-label="Fila de corridas" aria-live="polite">
         <h2>Fila ({queue.length})</h2>
         {queue.length === 0 ? (
