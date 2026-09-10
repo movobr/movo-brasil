@@ -34,7 +34,7 @@ export class InMemoryEventCollector implements EventPublisher {
 /** Provedor demo (39): sem rede, determinístico, só para demonstração. */
 export class DemoPaymentProvider implements PaymentProvider {
   async createPixOrder(input: PixOrderInput): Promise<PixOrder> {
-    return { providerReference: `demo-mp-${input.rideId}`, qrData: `qr-demo:${input.rideId}` };
+    return { providerReference: `demo-mp-${input.rideId}`, qrData: `qr-demo:${input.rideId}`, clientSecret: null };
   }
 
   verifyWebhookSignature(): boolean {
