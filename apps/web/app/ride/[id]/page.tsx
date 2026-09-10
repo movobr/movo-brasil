@@ -4,7 +4,7 @@ import { buildReceipt } from '@movo/brasil/src/domain/receipt.js';
 import { DataStates } from '../../../components/DataStates.js';
 import { getBackend } from '../../../lib/backend.js';
 import { requireSession } from '../../../lib/require-session.js';
-import { advanceAction, cancelRideAction, openChatAction, reportChatMessageAction, sendChatMessageAction, startMatchingAction } from '../actions.js';
+import { advanceAction, cancelRideAction, openChatAction, reportChatMessageAction, sendChatMessageAction, startMatchingAction, submitRatingAction } from '../actions.js';
 
 /** 26-5..9: matching, assigned, arriving, in-progress, completed + cancel. */
 export default async function RideStatusPage({
@@ -110,6 +110,11 @@ export default async function RideStatusPage({
       {ride.status === 'COMPLETED' ? (
         <ReceiptSection rideId={ride.id} tenantId={tenant.id} quotedMinor={ride.quotedMinor} completedAt={ride.completedAt} />
       ) : null}
+      {ride.status === 'COMPLETED' &&
+      (actor.userId === ride.passengerId || actor.userId === ride.driverId) &&
+      backend.ratings !== null ? (
+        <RatingSection rideId={ride.id} tenantId={tenant.id} slug={slug} actorUserId={actor.userId} />
+      ) : null}
       {ride.status === 'CANCELLED' ? <p role="status">Corrida cancelada.</p> : null}
       {ride.driverId !== null && backend.chat !== null ? (
         <section className="card" aria-label="Chat da corrida" aria-live="polite">
@@ -171,7 +176,7 @@ async function ChatThread({ rideId, slug, tenantId, actor }: { rideId: string; s
   );
 }
 
-/** 26-9: recibo pós-corrida (read-model; avaliação = UNSPECIFIED-008). */
+/** 26-9: recibo pós-corrida (read-model; avaliação bilateral 1–5 abaixo). */
 async function ReceiptSection({ rideId, tenantId, quotedMinor, completedAt }: { rideId: string; tenantId: string; quotedMinor: number; completedAt: Date | null }) {
   const backend = await getBackend();
   const intents = await backend.paymentIntentsForRide(rideId).catch(() => []);
@@ -225,7 +230,39 @@ async function ReceiptSection({ rideId, tenantId, quotedMinor, completedAt }: { 
           </dd>
         </div>
       </dl>
-      <p role="status">Avaliação da corrida: em definição com o Owner (escala e regras pendentes).</p>
+      <p role="status">Avalie a corrida abaixo (1–5 estrelas).</p>
+    </section>
+  );
+}
+
+/** Avaliação bilateral 1–5 (Owner DECIDED, era UNSPECIFIED-008). */
+async function RatingSection({ rideId, tenantId, slug, actorUserId }: { rideId: string; tenantId: string; slug: string; actorUserId: string }) {
+  const backend = await getBackend();
+  if (backend.ratings === null) return <p role="status">Avaliação indisponível.</p>;
+  const full = await requireSession();
+  const ratings = await backend.ratings.listRatings(full, tenantId, rideId).catch(() => []);
+  const mine = ratings.find((rating) => rating.raterUserId === actorUserId) ?? null;
+  return (
+    <section className="card" aria-label="Avaliação">
+      <h2>Avaliação</h2>
+      {mine !== null ? (
+        <p role="status">
+          Você avaliou com {mine.stars} de 5 estrelas.
+        </p>
+      ) : (
+        <form action={submitRatingAction.bind(null, rideId, slug)}>
+          <fieldset>
+            <legend>Quantas estrelas?</legend>
+            {[1, 2, 3, 4, 5].map((stars) => (
+              <label key={stars}>
+                <input type="radio" name="stars" value={stars} required />
+                {stars}
+              </label>
+            ))}
+          </fieldset>
+          <button className="primary" type="submit">Enviar avaliação</button>
+        </form>
+      )}
     </section>
   );
 }

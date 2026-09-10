@@ -104,7 +104,7 @@ export function TrackingScreen({
       {receiptMinor !== null ? (
         <View accessible accessibilityLabel="Recibo">
           <Text style={{ color: palette.onSurface }}>Recibo: {formatBrl(receiptMinor)}</Text>
-          <Text style={{ color: palette.onSurface }}>Avaliação: em definição.</Text>
+          <Text style={{ color: palette.onSurface }}>Avaliação 1–5 na web.</Text>
         </View>
       ) : null}
     </View>

@@ -1,8 +1,10 @@
 import type { ActorContext } from '../../domain/authorization.js';
 import { Conversation, Message } from '../../domain/conversation.js';
 import type { DeviceToken, Notification } from '../../domain/notification.js';
+import { Rating } from '../../domain/rating.js';
 import type { ConversationStore, MessageStore } from '../../application/conversation-service.js';
 import type { DeviceTokenStore, NotificationStore } from '../../application/notification-service.js';
+import type { RatingStore } from '../../application/rating-service.js';
 
 /** Stores em memória para chat + notificações (19/18). */
 export class InMemoryConversationStore implements ConversationStore {
@@ -88,4 +90,23 @@ export class InMemoryDeviceTokenStore implements DeviceTokenStore {
 
 export function actorWith(permissions: string[], tenantId: string | null, userId: string): ActorContext {
   return { userId, tenantId, permissions, correlationId: 'test-correlation' };
+}
+
+/** Store em memória para avaliações (Fase 26, Owner DECIDED bilateral 1–5). */
+export class InMemoryRatingStore implements RatingStore {
+  private readonly ratings: Rating[] = [];
+
+  async findByRideAndRater(rideId: string, raterUserId: string): Promise<Rating | null> {
+    return this.ratings.find((rating) => rating.rideId === rideId && rating.raterUserId === raterUserId) ?? null;
+  }
+
+  async save(rating: Rating): Promise<void> {
+    if ((await this.findByRideAndRater(rating.rideId, rating.raterUserId)) === null) {
+      this.ratings.push(rating);
+    }
+  }
+
+  async listByRide(tenantId: string, rideId: string): Promise<Rating[]> {
+    return this.ratings.filter((rating) => rating.tenantId === tenantId && rating.rideId === rideId);
+  }
 }

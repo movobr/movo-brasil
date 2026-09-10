@@ -24,11 +24,12 @@ import { SupabasePaymentStore } from '@movo/brasil/src/infrastructure/supabase/p
 import { SupabaseDriverProfileRepository, SupabasePassengerProfileRepository, SupabaseVehicleRepository } from '@movo/brasil/src/infrastructure/supabase/onboarding.js';
 import { SupabaseUserRepository } from '@movo/brasil/src/infrastructure/supabase/repositories.js';
 import { ConversationService } from '@movo/brasil/src/application/conversation-service.js';
+import { RatingService } from '@movo/brasil/src/application/rating-service.js';
 import type { PaymentIntent } from '@movo/brasil/src/domain/payment.js';
 import { FakeChannelSender, NotificationService } from '@movo/brasil/src/application/notification-service.js';
 import type { NotificationStore } from '@movo/brasil/src/application/notification-service.js';
 import { renderTemplate } from '@movo/brasil/src/domain/notification.js';
-import { InMemoryConversationStore, InMemoryDeviceTokenStore, InMemoryMessageStore, InMemoryNotificationStore } from '@movo/brasil/src/infrastructure/memory/communication.js';
+import { InMemoryConversationStore, InMemoryDeviceTokenStore, InMemoryMessageStore, InMemoryNotificationStore, InMemoryRatingStore } from '@movo/brasil/src/infrastructure/memory/communication.js';
 import { FakeMapsProvider, DemoPaymentProvider } from './demo-fakes.js';
 
 /**
@@ -79,6 +80,7 @@ interface DemoStores {
   events: CollectingPublisher;
   conversations: InMemoryConversationStore;
   messages: InMemoryMessageStore;
+  ratings: InMemoryRatingStore;
   notifications: InMemoryNotificationStore;
   deviceTokens: InMemoryDeviceTokenStore;
 }
@@ -135,6 +137,7 @@ export interface Backend {
   onboarding: OnboardingService;
   orchestrator: RideOrchestrator;
   chat: ConversationService | null;
+  ratings: RatingService | null;
   notifications: NotificationService | null;
   inbox: NotificationStore | null;
   paymentIntentsForRide(rideId: string): Promise<PaymentIntent[]>;
@@ -168,6 +171,7 @@ export async function getBackend(): Promise<Backend> {
       onboarding: new OnboardingService(new SupabaseDriverProfileRepository(db), new SupabasePassengerProfileRepository(db), new SupabaseVehicleRepository(db), audits),
       orchestrator: new RideOrchestrator(new SupabaseTenantRepository(db), new SupabaseRideRepository(db), audits, new CollectingPublisher(), maps, payments),
       chat: null,
+      ratings: null,
       notifications: null,
       inbox: null,
       paymentIntentsForRide: (rideId: string) => payments.findIntentsByRide(rideId),
@@ -192,6 +196,7 @@ export async function getBackend(): Promise<Backend> {
     events: new CollectingPublisher(),
     conversations: new InMemoryConversationStore(),
     messages: new InMemoryMessageStore(),
+    ratings: new InMemoryRatingStore(),
     notifications: new InMemoryNotificationStore(),
     deviceTokens: new InMemoryDeviceTokenStore(),
   };
@@ -211,6 +216,18 @@ export async function getBackend(): Promise<Backend> {
     },
   };
   const chat = new ConversationService(stores.conversations, stores.messages, rideParticipants, randomUUID, () => new Date());
+  const ratings = new RatingService(
+    stores.ratings,
+    {
+      findById: async (tenantId: string, rideId: string) => {
+        const ride = await stores.rides.findById(rideId);
+        if (ride === null || ride.tenantId !== tenantId) return null;
+        return { status: ride.status, passengerUserId: ride.passengerId, driverUserId: ride.driverId };
+      },
+    },
+    randomUUID,
+    () => new Date(),
+  );
   const notificationService = new NotificationService(
     stores.notifications,
     stores.deviceTokens,
@@ -231,6 +248,7 @@ export async function getBackend(): Promise<Backend> {
     onboarding: new OnboardingService(stores.drivers, stores.passengers, stores.vehicles, stores.audits),
     orchestrator: new RideOrchestrator(stores.tenants, stores.rides, stores.audits, stores.events, maps, payments, undefined, undefined, stores.drivers),
     chat,
+    ratings,
     notifications: notificationService,
     inbox: stores.notifications,
     paymentIntentsForRide: (rideId: string) => payments.findIntentsByRide(rideId),

@@ -2,23 +2,15 @@ import { SessionService } from '@movo/brasil/src/application/session-service.js'
 import type { AuthProvider, VerifiedSession } from '@movo/brasil/src/application/auth-ports.js';
 import type { UserRepository } from '@movo/brasil/src/application/repositories.js';
 import type { ActorContext } from '@movo/brasil/src/domain/authorization.js';
+import { PRODUCTION_ROLE_PERMISSIONS } from '@movo/brasil/src/application/role-permissions.js';
 
 /**
- * Mapeamento papel→permissões EXCLUSIVO de demonstração.
- * UNSPECIFIED-007: o Blueprint (09) lista papéis e permissões, mas não o
- * mapeamento entre eles. Produção exige decisão do Owner; aqui, fixture
- * explícita usada só pelo DemoAuthProvider.
+ * Mapeamento papel→permissões de PRODUÇÃO (Owner DECIDED 2026-09-10,
+ * era UNSPECIFIED-007). Fonte única no backend; aqui, reexportado para
+ * o DemoAuthProvider. `ride.rate` (Fase 26) integra a tabela aprovada.
  */
-export const DEMO_ROLE_PERMISSIONS: Readonly<Record<string, ReadonlyArray<string>>> = {
-  MOVO_PLATFORM_ADMIN: ['tenant.read', 'tenant.update', 'subscription.read', 'subscription.manage', 'audit.read', 'ride.read', 'ride.dispatch', 'ride.accept', 'ride.cancel', 'ride.chat', 'driver.read', 'driver.manage'],
-  TENANT_ADMIN: ['tenant.read', 'tenant.update', 'branding.manage', 'driver.read', 'driver.manage', 'ride.read', 'ride.dispatch', 'ride.chat', 'audit.read', 'subscription.read'],
-  OPERATOR: ['ride.read', 'ride.dispatch', 'ride.cancel', 'ride.chat', 'driver.read'],
-  SUPPORT_AGENT: ['ride.read', 'ride.chat', 'audit.read'],
-  // driver.manage no demo cobre o autosserviço (disponibilidade própria);
-  // o mapeamento real definirá o escopo (UNSPECIFIED-007).
-  DRIVER: ['ride.read', 'ride.accept', 'ride.chat', 'driver.read', 'driver.manage'],
-  PASSENGER: ['ride.request', 'ride.read', 'ride.cancel', 'ride.chat'],
-};
+export const DEMO_ROLE_PERMISSIONS: Readonly<Record<string, ReadonlyArray<string>>> =
+  PRODUCTION_ROLE_PERMISSIONS;
 
 export const DEMO_AUTH_CODE = '123456';
 

@@ -193,3 +193,16 @@ Rastreabilidade: `docs/TRACEABILITY-FASE-24.md`.
 axe-core wcag2a/aa sobre login, cotação e marca do tenant: 0 violações.
 Smoke das 8 rotas (Fase 23) continua verde.
 Rastreabilidade: `docs/TRACEABILITY-FASE-25.md`.
+
+## Fase 26 — Avaliação bilateral 1–5 (Owner DECIDED)
+
+Fecha UNSPECIFIED-008: 1–5 inteiras, uma por avaliador, só concluída,
+só participante, direção derivada. Form na corrida + estado avaliado.
+Rastreabilidade: `docs/TRACEABILITY-FASE-26.md`.
+
+## Fase 27 — Mapeamento papel→permissão em produção (Owner DECIDED)
+
+Fecha UNSPECIFIED-007: tabela aprovada vira fonte única congelada no
+backend; demo-auth reexporta (sem dupla verdade). `ride.rate` só para
+quem avalia. Mudanças exigem nova decisão (46).
+Rastreabilidade: `docs/TRACEABILITY-FASE-27.md`.

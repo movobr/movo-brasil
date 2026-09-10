@@ -152,3 +152,16 @@ export async function reportChatMessageAction(rideId: string, slug: string, mess
   }
   backTo(rideId, slug, '&chat=1');
 }
+
+/** Avaliação bilateral 1–5 (Owner DECIDED, era UNSPECIFIED-008). */
+export async function submitRatingAction(rideId: string, slug: string, formData: FormData): Promise<never> {
+  const actor = await requireSession();
+  const { backend, tenant } = await tenantBySlug(slug);
+  if (backend.ratings === null) backTo(rideId, slug, '&opError=Avalia%C3%A7%C3%A3o+indispon%C3%ADvel.');
+  try {
+    await backend.ratings.submitRating(actor, tenant.id, rideId, Number(formData.get('stars')));
+  } catch (error) {
+    failure(rideId, slug, error);
+  }
+  backTo(rideId, slug);
+}
