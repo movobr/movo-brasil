@@ -9,7 +9,7 @@ on:
   pull_request:
 
 env:
-  REGISTRY: ${{ vars.REGISTRY }}
+  REGISTRY: ${{ vars.REGISTRY || 'local' }}
 
 jobs:
   gates-1-2:
