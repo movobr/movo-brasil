@@ -96,6 +96,19 @@ describe('session policy (02/33)', () => {
     ).rejects.toMatchObject({ code: 'NOT_FOUND' });
   });
 
+  it('resolves empty permissions from the production role table (Fase 27)', async () => {
+    const { service } = await setup();
+    const provider = fakeProvider(verifiedAdmin());
+    const { actor } = await service.establishFromEmail(
+      provider,
+      { email: 'admin-a@movo.demo', password: 'x' },
+      [],
+    );
+    expect(actor.permissions).toContain('branding.manage');
+    expect(actor.permissions).toContain('tenant.read');
+    expect(actor.permissions).not.toContain('ride.accept');
+  });
+
   it('establishes driver sessions from phone OTP without MFA', async () => {
     const users = new InMemoryUserRepository();
     await users.save(

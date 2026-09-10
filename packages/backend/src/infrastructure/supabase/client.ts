@@ -20,3 +20,22 @@ export function createSupabaseClient(env: NodeJS.ProcessEnv = process.env): Supa
   }
   return createClient(url, serviceKey, { auth: { persistSession: false } });
 }
+
+/**
+ * Client público para Auth user-facing (Fase 31). REGRA DE SEGURANÇA:
+ * o client service_role NUNCA carrega sessão de usuário — após signIn o
+ * supabase-js passa a enviar o JWT do usuário e o RLS deny-by-default
+ * nega as leituras do backend (além de misturar identidades). Auth de
+ * usuário usa a publishable key; repositórios usam o service client.
+ */
+export function createPublicSupabaseClient(env: NodeJS.ProcessEnv = process.env): SupabaseClient {
+  const url = env['SUPABASE_URL'] ?? env['NEXT_PUBLIC_SUPABASE_URL'];
+  const publishableKey = env['SUPABASE_PUBLISHABLE_KEY'] ?? env['NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY'];
+  if (url === undefined || url === '' || publishableKey === undefined || publishableKey === '') {
+    throw new DomainError(
+      'VALIDATION_FAILED',
+      'SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY must be set for user-facing auth.',
+    );
+  }
+  return createClient(url, publishableKey, { auth: { persistSession: false } });
+}

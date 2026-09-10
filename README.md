@@ -220,3 +220,11 @@ Rastreabilidade: `docs/TRACEABILITY-FASE-28.md`.
 opcional rollup no Linux, 0004 no Gate 3, runtime sem npm, postcss
 8.5.28, Gates 5–8 condicionais.
 Rastreabilidade: `docs/TRACEABILITY-FASE-29.md`.
+
+## Fase 30–31 — Backend vivo + clients separados
+
+Migrations no Supabase real, login vivo provado de ponta a ponta
+(usuário temporário removido). E2E achou bug real: client service_role
+carregava sessão de usuário (RLS negava) — separado em client público
+p/ Auth. Login resolve permissões pela tabela de produção.
+Rastreabilidade: `docs/TRACEABILITY-FASE-30-31.md`.

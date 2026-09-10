@@ -1,16 +1,20 @@
 import { describe, expect, it } from 'vitest';
-import { createSupabaseClient } from '../../src/infrastructure/supabase/client.js';
+import { createPublicSupabaseClient } from '../../src/infrastructure/supabase/client.js';
 import { SupabaseAuthProvider } from '../../src/infrastructure/supabase/auth-provider.js';
 
 /**
- * Auth viva contra Supabase Cloud (DEC-TECH-005). Exige SUPABASE_URL +
- * SUPABASE_SERVICE_ROLE_KEY; sem elas, pula como o teste de banco.
+ * Auth viva contra Supabase Cloud (DEC-TECH-005). Usa o client PÚBLICO
+ * (Fase 31): Auth de usuário nunca roda no client service_role.
+ * Exige SUPABASE_URL + SUPABASE_PUBLISHABLE_KEY; sem elas, pula.
  */
-const LIVE = process.env['SUPABASE_URL'] !== undefined && process.env['SUPABASE_SERVICE_ROLE_KEY'] !== undefined;
+const LIVE =
+  process.env['SUPABASE_URL'] !== undefined &&
+  (process.env['SUPABASE_PUBLISHABLE_KEY'] !== undefined ||
+    process.env['NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY'] !== undefined);
 
 describe.skipIf(!LIVE)('supabase auth live', () => {
   it('rejects invalid email credentials deterministically', async () => {
-    const provider = new SupabaseAuthProvider(createSupabaseClient());
+    const provider = new SupabaseAuthProvider(createPublicSupabaseClient());
     await expect(
       provider.signInWithEmail({ email: 'nobody@movo.demo', password: 'wrong' }),
     ).rejects.toThrowError();

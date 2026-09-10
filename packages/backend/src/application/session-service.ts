@@ -5,11 +5,14 @@ import type { ActorContext } from '../domain/authorization.js';
 import type { User } from '../domain/user.js';
 import type { UserRepository } from './repositories.js';
 import type { AuthProvider, EmailCredentials, VerifiedSession } from './auth-ports.js';
+import { permissionsForRole } from './role-permissions.js';
 
 /**
  * Emissão de contexto de ator a partir de sessão verificada (02).
  * O backend resolve usuário local <-> identidade do provedor, vincula o
  * tenant do cadastro (nunca do cliente) e impõe a política de MFA (33).
+ * Permissões: array explícito do chamador, ou — quando vazio — a tabela
+ * de produção aprovada pelo Owner (Fase 27) pelo papel do usuário.
  */
 export class SessionService {
   constructor(
@@ -43,13 +46,14 @@ export class SessionService {
   ): Promise<{ session: Session; actor: ActorContext }> {
     const user = await this.findLocalUser(verified);
     const now = this.clock.now();
+    const effectivePermissions = permissions.length > 0 ? [...permissions] : [...permissionsForRole(user.role)];
     const session = Session.establish(
       {
         sessionId: this.newId(),
         userId: user.id,
         tenantId: user.tenantId,
         role: user.role,
-        permissions,
+        permissions: effectivePermissions,
         mfaVerified: verified.mfaVerified,
         expiresAt: verified.expiresAt,
         correlationId: this.newId(),
@@ -60,7 +64,7 @@ export class SessionService {
     const actor: ActorContext = {
       userId: user.id,
       tenantId: user.tenantId,
-      permissions: [...permissions],
+      permissions: effectivePermissions,
       correlationId: session.correlationId,
     };
     return { session, actor };
