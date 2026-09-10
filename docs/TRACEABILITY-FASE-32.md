@@ -35,3 +35,11 @@ Test users) OU envia webhook secret + chaves de produção.
 Tudo que depende só das credenciais funciona (auth, catálogo, Pix
 leitura, tokenização). Tudo que cria DINHEIRO (Pix ou cartão) exige
 test user da aplicação — barreira de política, não de código.
+
+## MCP Server do MP (tentativa 2026-09-10)
+- Configurado via `hermes mcp` (HTTP + stdio mcp-remote) e via curl
+  direto: 401 persistente "No user session found" — o servidor exige
+  sessão OAuth, não aceita o Access Token TEST por credencial direta.
+- `mcp-remote@0.8.6` nem tem flag `--header` (doc do MP desatualizada).
+- Config removida (sem config morta). Para usar: criar aplicação
+  OAuth no painel MP e seguir o fluxo interativo.
