@@ -213,3 +213,10 @@ https://github.com/movobr/movo-brasil — monorepo publicado (27 commits
 via subtree split), CI `movo-ci` rodando no push. Scan pré-push sem
 segredos reais. Falta: reviewers no environment `production`.
 Rastreabilidade: `docs/TRACEABILITY-FASE-28.md`.
+
+## Fase 29 — CI verde no GitHub
+
+`movo-ci` success: Gates 1–6 verdes, 7–8 pulados sem VPS. Correções:
+opcional rollup no Linux, 0004 no Gate 3, runtime sem npm, postcss
+8.5.28, Gates 5–8 condicionais.
+Rastreabilidade: `docs/TRACEABILITY-FASE-29.md`.
