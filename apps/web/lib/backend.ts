@@ -19,6 +19,7 @@ import { InMemoryLedgerStore, InMemoryPaymentStore } from '@movo/brasil/src/infr
 import { InMemorySubscriptionRepository } from '@movo/brasil/src/infrastructure/memory/subscriptions.js';
 import { createSupabaseClient } from '@movo/brasil/src/infrastructure/supabase/client.js';
 import { createPublicSupabaseClient } from '@movo/brasil/src/infrastructure/supabase/client.js';
+import { GoogleMapsProvider } from '@movo/brasil/src/infrastructure/maps/google-maps-provider.js';
 import { SupabaseRealtimePublisher } from '@movo/brasil/src/infrastructure/realtime/supabase-realtime-publisher.js';
 import { SupabaseTenantRepository } from '@movo/brasil/src/infrastructure/supabase/repositories.js';
 import { SupabaseRideRepository } from '@movo/brasil/src/infrastructure/supabase/ride-repository.js';
@@ -42,6 +43,17 @@ import { FakeMapsProvider, DemoPaymentProvider } from './demo-fakes.js';
  * Branding demo é fixture neutra de apresentação (store de config chega
  * com UNSPECIFIED-002); cada página resolve só o branding do tenant.
  */
+/**
+ * Seleção do provedor de mapas (37): com GOOGLE_MAPS_API_KEY, o adapter
+ * vivo (Geocoding + Routes v2); sem ela, o fake determinístico do demo.
+ * Exportada para teste sem rede.
+ */
+export function selectMapsProvider(env: NodeJS.ProcessEnv = process.env): MapsProvider {
+  const apiKey = env['GOOGLE_MAPS_API_KEY'];
+  if (apiKey !== undefined && apiKey.trim() !== '') return new GoogleMapsProvider(apiKey);
+  return new FakeMapsProvider();
+}
+
 const NOW = new Date('2026-09-09T12:00:00.000Z');
 
 export const DEMO_BRANDING: Readonly<Record<string, BrandingConfig>> = {
@@ -161,8 +173,10 @@ export async function getBackend(): Promise<Backend> {
   const platformActor: ActorContext = {
     userId: 'platform-admin', tenantId: null, permissions: PLATFORM_PERMISSIONS, correlationId: randomUUID(),
   };
-  const maps: MapsProvider = new FakeMapsProvider();
   const useLive = process.env['SUPABASE_URL'] !== undefined && process.env['SUPABASE_SERVICE_ROLE_KEY'] !== undefined;
+  // Demo sem Supabase: fake determinístico (custo zero). Caminho vivo:
+  // adapter Google com a key do servidor (nunca exposta ao client).
+  const maps: MapsProvider = useLive ? selectMapsProvider() : new FakeMapsProvider();
   if (useLive) {
     const db = createSupabaseClient();
     const audits = new InMemoryAuditEventRepository();
