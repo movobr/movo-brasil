@@ -76,7 +76,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: docker build -f deploy/Dockerfile.web -t movo-web:${{ github.sha }} .
-      - uses: aquasecurity/trivy-action@0.36.0
+      - uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: movo-web:${{ github.sha }}
           severity: CRITICAL,HIGH
